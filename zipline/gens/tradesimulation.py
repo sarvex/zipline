@@ -103,10 +103,8 @@ class AlgorithmSimulator(object):
         emission_rate = metrics_tracker.emission_rate
 
         def every_bar(dt_to_use, current_data=self.current_data,
-                      handle_data=algo.event_manager.handle_data):
-            for capital_change in calculate_minute_capital_changes(dt_to_use):
-                yield capital_change
-
+                          handle_data=algo.event_manager.handle_data):
+            yield from calculate_minute_capital_changes(dt_to_use)
             self.simulation_dt = dt_to_use
             # called every tick (minute or day).
             algo.on_dt_changed(dt_to_use)
@@ -116,7 +114,7 @@ class AlgorithmSimulator(object):
             # handle any transactions and commissions coming out new orders
             # placed in the last bar
             new_transactions, new_commissions, closed_orders = \
-                blotter.get_transactions(current_data)
+                    blotter.get_transactions(current_data)
 
             blotter.prune_orders(closed_orders)
 
@@ -143,13 +141,11 @@ class AlgorithmSimulator(object):
                 metrics_tracker.process_order(new_order)
 
         def once_a_day(midnight_dt, current_data=self.current_data,
-                       data_portal=self.data_portal):
+                           data_portal=self.data_portal):
             # process any capital changes that came overnight
-            for capital_change in algo.calculate_capital_changes(
-                    midnight_dt, emission_rate=emission_rate,
-                    is_interday=True):
-                yield capital_change
-
+            yield from algo.calculate_capital_changes(
+                midnight_dt, emission_rate=emission_rate, is_interday=True
+            )
             # set all the timestamps
             self.simulation_dt = midnight_dt
             algo.on_dt_changed(midnight_dt)
@@ -202,11 +198,9 @@ class AlgorithmSimulator(object):
 
             for dt, action in self.clock:
                 if action == BAR:
-                    for capital_change_packet in every_bar(dt):
-                        yield capital_change_packet
+                    yield from every_bar(dt)
                 elif action == SESSION_START:
-                    for capital_change_packet in once_a_day(dt):
-                        yield capital_change_packet
+                    yield from once_a_day(dt)
                 elif action == SESSION_END:
                     # End of the session.
                     positions = metrics_tracker.positions
@@ -222,18 +216,14 @@ class AlgorithmSimulator(object):
                     algo.on_dt_changed(dt)
                     algo.before_trading_start(self.current_data)
                 elif action == MINUTE_END:
-                    minute_msg = self._get_minute_message(
+                    yield self._get_minute_message(
                         dt,
                         algo,
                         metrics_tracker,
                     )
-
-                    yield minute_msg
-
-            risk_message = metrics_tracker.handle_simulation_end(
+            yield metrics_tracker.handle_simulation_end(
                 self.data_portal,
             )
-            yield risk_message
 
     def _cleanup_expired_assets(self, dt, position_assets):
         """

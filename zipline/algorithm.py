@@ -634,15 +634,12 @@ class TradingAlgorithm(object):
             )
         else:
             assert self.asset_finder is not None, \
-                "Have data portal without asset_finder."
+                    "Have data portal without asset_finder."
 
         # Create zipline and loop through simulated_trading.
         # Each iteration returns a perf dictionary
         try:
-            perfs = []
-            for perf in self.get_generator():
-                perfs.append(perf)
-
+            perfs = list(self.get_generator())
             # convert perf dict to pandas dataframe
             daily_stats = self._create_daily_stats(perfs)
 
@@ -673,8 +670,7 @@ class TradingAlgorithm(object):
         daily_dts = pd.DatetimeIndex(
             [p['period_close'] for p in daily_perfs], tz='UTC'
         )
-        daily_stats = pd.DataFrame(daily_perfs, index=daily_dts)
-        return daily_stats
+        return pd.DataFrame(daily_perfs, index=daily_dts)
 
     def calculate_capital_changes(self, dt, emission_rate, is_interday,
                                   portfolio_value_adjustment=0.0):
@@ -710,8 +706,7 @@ class TradingAlgorithm(object):
         elif capital_change['type'] == 'delta':
             target = None
             capital_change_amount = capital_change['value']
-            log.info('Processing capital change of delta %s at %s'
-                     % (capital_change_amount, dt))
+            log.info(f'Processing capital change of delta {capital_change_amount} at {dt}')
         else:
             log.error("Capital change %s does not indicate a valid type "
                       "('target' or 'delta')" % capital_change)
@@ -777,13 +772,12 @@ class TradingAlgorithm(object):
         }
         if field == '*':
             return env
-        else:
-            try:
-                return env[field]
-            except KeyError:
-                raise ValueError(
-                    '%r is not a valid field for get_environment' % field,
-                )
+        try:
+            return env[field]
+        except KeyError:
+            raise ValueError(
+                '%r is not a valid field for get_environment' % field,
+            )
 
     @api_method
     def fetch_csv(self,
@@ -1176,7 +1170,7 @@ class TradingAlgorithm(object):
             )
         else:
             last_price = \
-                self.trading_client.current_data.current(asset, "price")
+                    self.trading_client.current_data.current(asset, "price")
 
             if np.isnan(last_price):
                 raise CannotOrderDelistedAsset(
@@ -1186,10 +1180,10 @@ class TradingAlgorithm(object):
                 )
 
         if tolerant_equals(last_price, 0):
-            zero_message = "Price of 0 for {psid}; can't infer value".format(
-                psid=asset
-            )
             if self.logger:
+                zero_message = "Price of 0 for {psid}; can't infer value".format(
+                    psid=asset
+                )
                 self.logger.debug(zero_message)
             # Don't place any order
             return 0
@@ -1360,10 +1354,7 @@ class TradingAlgorithm(object):
             return StopLimitOrder(limit_price, stop_price, asset=asset)
         if limit_price:
             return LimitOrder(limit_price, asset=asset)
-        if stop_price:
-            return StopOrder(stop_price, asset=asset)
-        else:
-            return MarketOrder()
+        return StopOrder(stop_price, asset=asset) if stop_price else MarketOrder()
 
     @api_method
     @disallowed_in_before_trading_start(OrderInBeforeTradingStart())
@@ -2006,35 +1997,34 @@ class TradingAlgorithm(object):
                 self.data_frequency,
                 ffill,
             )
-        else:
-            # If we are in before_trading_start, we need to get the window
-            # as of the previous market minute
-            adjusted_dt = \
+        # If we are in before_trading_start, we need to get the window
+        # as of the previous market minute
+        adjusted_dt = \
                 self.trading_calendar.previous_minute(
-                    self.datetime
-                )
-
-            window = self.data_portal.get_history_window(
-                assets,
-                adjusted_dt,
-                bar_count,
-                frequency,
-                field,
-                self.data_frequency,
-                ffill,
-            )
-
-            # Get the adjustments between the last market minute and the
-            # current before_trading_start dt and apply to the window
-            adjs = self.data_portal.get_adjustments(
-                assets,
-                field,
-                adjusted_dt,
                 self.datetime
             )
-            window = window * adjs
 
-            return window
+        window = self.data_portal.get_history_window(
+            assets,
+            adjusted_dt,
+            bar_count,
+            frequency,
+            field,
+            self.data_frequency,
+            ffill,
+        )
+
+        # Get the adjustments between the last market minute and the
+        # current before_trading_start dt and apply to the window
+        adjs = self.data_portal.get_adjustments(
+            assets,
+            field,
+            adjusted_dt,
+            self.datetime
+        )
+        window = window * adjs
+
+        return window
 
     ####################
     # Account Controls #

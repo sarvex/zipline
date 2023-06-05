@@ -192,6 +192,7 @@ class _FXReaderTestCase(zp_fixtures.WithFXRates,
             assert_equal(london_result, london_rates.values)
 
     def test_read_before_start_date(self):
+        quote = 'USD'
         # Reads from before the start of our data should emit NaN. We do this
         # because, for some Pipeline loaders, it's hard to put a lower bound on
         # input asof dates, so we end up making queries for asof_dates that
@@ -201,7 +202,6 @@ class _FXReaderTestCase(zp_fixtures.WithFXRates,
                          self.FX_RATES_START_DATE - pd.Timedelta('1000 days')):
 
             for rate in self.FX_RATES_RATE_NAMES:
-                quote = 'USD'
                 bases = np.array(['CAD'], dtype=object)
                 dts = pd.DatetimeIndex([bad_date])
 
@@ -210,6 +210,7 @@ class _FXReaderTestCase(zp_fixtures.WithFXRates,
                 assert_equal(np.nan, result[0, 0])
 
     def test_read_after_end_date(self):
+        quote = 'USD'
         # Reads from **after** the end of our data, on the other hand, should
         # fail. We can always upper bound the relevant asofs that we're
         # interested in, and having fx rates forward-fill past the end of data
@@ -218,7 +219,6 @@ class _FXReaderTestCase(zp_fixtures.WithFXRates,
                          self.FX_RATES_END_DATE + pd.Timedelta('1000 days')):
 
             for rate in self.FX_RATES_RATE_NAMES:
-                quote = 'USD'
                 bases = np.array(['CAD'], dtype=object)
                 dts = pd.DatetimeIndex([bad_date])
 
@@ -233,8 +233,8 @@ class _FXReaderTestCase(zp_fixtures.WithFXRates,
                 assert_equal(expected, result[0, 0])
 
     def test_read_unknown_base(self):
+        quote = 'USD'
         for rate in self.FX_RATES_RATE_NAMES:
-            quote = 'USD'
             for unknown_base in 'XXX', None:
                 bases = np.array([unknown_base], dtype=object)
                 dts = pd.DatetimeIndex([self.FX_RATES_START_DATE])

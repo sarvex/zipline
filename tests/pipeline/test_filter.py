@@ -195,7 +195,7 @@ class FilterTestCase(BaseUSEquityPipelineTestCase):
     def test_percentile_between(self):
 
         quintiles = range(5)
-        filter_names = ['pct_' + str(q) for q in quintiles]
+        filter_names = [f'pct_{str(q)}' for q in quintiles]
         iter_quintiles = list(zip(filter_names, quintiles))
         terms = {
             name: self.f.percentile_between(q * 20.0, (q + 1) * 20.0)
@@ -204,17 +204,10 @@ class FilterTestCase(BaseUSEquityPipelineTestCase):
 
         # Test with 5 columns and no NaNs.
         eye5 = eye(5, dtype=float64)
-        expected = {}
-        for name, quintile in iter_quintiles:
-            if quintile < 4:
-                # There are four 0s and one 1 in each row, so the first 4
-                # quintiles should be all the locations with zeros in the input
-                # array.
-                expected[name] = ~eye5.astype(bool)
-            else:
-                # The top quintile should match the sole 1 in each row.
-                expected[name] = eye5.astype(bool)
-
+        expected = {
+            name: ~eye5.astype(bool) if quintile < 4 else eye5.astype(bool)
+            for name, quintile in iter_quintiles
+        }
         self.check_terms(
             terms=terms,
             expected=expected,
@@ -230,16 +223,10 @@ class FilterTestCase(BaseUSEquityPipelineTestCase):
                       [1, 1, 0, 1, 1, 1],
                       [1, 1, 1, 0, 1, 1],
                       [1, 1, 1, 1, 0, 1]], dtype=bool)
-        expected = {}
-        for name, quintile in iter_quintiles:
-            if quintile < 4:
-                # Should keep all values that were 0 in the base data and were
-                # 1 in the mask.
-                expected[name] = mask & ~eye6.astype(bool)
-            else:
-                # The top quintile should match the sole 1 in each row.
-                expected[name] = eye6.astype(bool)
-
+        expected = {
+            name: mask & ~eye6.astype(bool) if quintile < 4 else eye6.astype(bool)
+            for name, quintile in iter_quintiles
+        }
         self.check_terms(
             terms=terms,
             expected=expected,
@@ -252,16 +239,12 @@ class FilterTestCase(BaseUSEquityPipelineTestCase):
         # In particular, the NaNs should never pass any filters.
         eye6_withnans = eye6.copy()
         putmask(eye6_withnans, ~mask, nan)
-        expected = {}
-        for name, quintile in iter_quintiles:
-            if quintile < 4:
-                # Should keep all values that were 0 in the base data and were
-                # 1 in the mask.
-                expected[name] = mask & (~eye6.astype(bool))
-            else:
-                # Should keep all the 1s in the base data.
-                expected[name] = eye6.astype(bool)
-
+        expected = {
+            name: mask & (~eye6.astype(bool))
+            if quintile < 4
+            else eye6.astype(bool)
+            for name, quintile in iter_quintiles
+        }
         self.check_terms(
             terms,
             expected,
@@ -279,7 +262,7 @@ class FilterTestCase(BaseUSEquityPipelineTestCase):
 
         data = arange(25, dtype=float).reshape(5, 5) % 4
         quartiles = range(4)
-        filter_names = ['pct_' + str(q) for q in quartiles]
+        filter_names = [f'pct_{str(q)}' for q in quartiles]
 
         terms = {
             name: self.f.percentile_between(q * 25.0, (q + 1) * 25.0)
@@ -1112,11 +1095,7 @@ class ReprTestCase(ZiplineTestCase):
         rep = repr(m)
         assert_equal(
             rep,
-            "Maximum({}, groupby={}, mask={})".format(
-                SomeFactor().recursive_repr(),
-                SomeClassifier().recursive_repr(),
-                SomeFilter().recursive_repr(),
-            )
+            f"Maximum({SomeFactor().recursive_repr()}, groupby={SomeClassifier().recursive_repr()}, mask={SomeFilter().recursive_repr()})",
         )
 
         short_rep = m.graph_repr()

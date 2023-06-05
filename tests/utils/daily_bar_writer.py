@@ -45,6 +45,4 @@ class DailyBarWriterFromDataFrames(BcolzDailyBarWriter):
     @staticmethod
     def check_uint_safe(value, colname):
         if value >= UINT32_MAX:
-            raise ValueError(
-                "Value %s from column '%s' is too large" % (value, colname)
-            )
+            raise ValueError(f"Value {value} from column '{colname}' is too large")

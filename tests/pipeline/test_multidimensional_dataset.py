@@ -92,8 +92,8 @@ class TestDataSetFamily(ZiplineTestCase):
                 ('dim_1', {'d', 'e', 'f'}),
             ]
 
-    def spec(*cs):
-        return (cs,)
+    def spec(self):
+        return (self, )
 
     @parameterized.expand([
         spec(

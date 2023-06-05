@@ -53,7 +53,7 @@ def create_simulation_parameters(year=2006,
     elif type(end) == datetime:
         end = pd.Timestamp(end)
 
-    sim_params = SimulationParameters(
+    return SimulationParameters(
         start_session=start,
         end_session=end,
         capital_base=capital_base,
@@ -61,8 +61,6 @@ def create_simulation_parameters(year=2006,
         emission_rate=emission_rate,
         trading_calendar=trading_calendar,
     )
-
-    return sim_params
 
 
 def get_next_trading_dt(current, interval, trading_calendar):
@@ -90,10 +88,7 @@ def create_trade_history(sid, prices, amounts, interval, sim_params,
     oneday = timedelta(days=1)
     use_midnight = interval >= oneday
     for price, amount in zip(prices, amounts):
-        if use_midnight:
-            trade_dt = current.replace(hour=0, minute=0)
-        else:
-            trade_dt = current
+        trade_dt = current.replace(hour=0, minute=0) if use_midnight else current
         trade = create_trade(sid, price, amount, trade_dt, source_id)
         trades.append(trade)
         current = get_next_trading_dt(current, interval, trading_calendar)
@@ -154,6 +149,4 @@ def create_trade_source(sids,
         'trading_calendar': trading_calendar,
         'asset_finder': asset_finder,
     }
-    source = SpecificEquityTrades(*args, **kwargs)
-
-    return source
+    return SpecificEquityTrades(*args, **kwargs)

@@ -366,8 +366,7 @@ def ensure_adjusted_array(ndarray_or_adjusted_array, missing_value):
         )
     else:
         raise TypeError(
-            "Can't convert %s to AdjustedArray" %
-            type(ndarray_or_adjusted_array).__name__
+            f"Can't convert {type(ndarray_or_adjusted_array).__name__} to AdjustedArray"
         )
 
 
@@ -392,8 +391,7 @@ def ensure_ndarray(ndarray_or_adjusted_array):
         return ndarray_or_adjusted_array.data
     else:
         raise TypeError(
-            "Can't convert %s to ndarray" %
-            type(ndarray_or_adjusted_array).__name__
+            f"Can't convert {type(ndarray_or_adjusted_array).__name__} to ndarray"
         )
 
 

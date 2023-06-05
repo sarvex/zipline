@@ -68,11 +68,7 @@ def handle_data(algo, data):
     variability = (np.linalg.norm(mark_rel_dev)) ** 2
 
     # test for divide-by-zero case
-    if variability == 0.0:
-        step_size = 0
-    else:
-        step_size = max(0, weight / variability)
-
+    step_size = 0 if variability == 0.0 else max(0, weight / variability)
     b = algo.b_t + step_size * mark_rel_dev
     b_norm = simplex_projection(b)
     np.testing.assert_almost_equal(b_norm.sum(), 1)

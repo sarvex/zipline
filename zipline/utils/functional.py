@@ -241,8 +241,7 @@ def unzip(seq, elem_len=None):
     -----
     This function will force ``seq`` to completion.
     """
-    ret = tuple(zip(*_gen_unzip(map(tuple, seq), elem_len)))
-    if ret:
+    if ret := tuple(zip(*_gen_unzip(map(tuple, seq), elem_len))):
         return ret
 
     if elem_len is None:

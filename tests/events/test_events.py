@@ -406,7 +406,7 @@ class StatelessRulesTests(RuleTestCase):
             for sessions_list in (self.sept_sessions, self.oct_sessions):
                 for n_tdays, session in enumerate(sessions_list):
                     # just check the first 10 minutes of each session
-                    for m in self.cal.minutes_for_session(session)[0:10]:
+                    for m in self.cal.minutes_for_session(session)[:10]:
                         if should_trigger(m):
                             self.assertEqual(n_tdays, n)
                         else:
@@ -419,7 +419,7 @@ class StatelessRulesTests(RuleTestCase):
             should_trigger = rule.should_trigger
             sessions = reversed(self.oct_sessions)
             for n_days_before, session in enumerate(sessions):
-                for m in self.cal.minutes_for_session(session)[0:10]:
+                for m in self.cal.minutes_for_session(session)[:10]:
                     if should_trigger(m):
                         self.assertEqual(n_days_before, n)
                     else:

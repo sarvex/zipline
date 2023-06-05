@@ -216,9 +216,7 @@ class IchimokuKinkoHyo(CustomFactor):
         for k, v in self.params.items():
             if v > self.window_length:
                 raise ValueError(
-                    '%s must be <= the window_length: %s > %s' % (
-                        k, v, self.window_length,
-                    ),
+                    f'{k} must be <= the window_length: {v} > {self.window_length}'
                 )
 
     def compute(self,

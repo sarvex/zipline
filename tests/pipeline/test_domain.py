@@ -557,7 +557,7 @@ class RollForwardTestCase(zf.ZiplineTestCase):
         # passing a date before the first session should return the
         # first session
         before_first_session = \
-            JP_EQUITIES.calendar.first_session - pd.Timedelta(days=20)
+                JP_EQUITIES.calendar.first_session - pd.Timedelta(days=20)
 
         self.assertEqual(
             JP_EQUITIES.roll_forward(before_first_session),
@@ -566,19 +566,14 @@ class RollForwardTestCase(zf.ZiplineTestCase):
 
         # requesting a session beyond the last session raises an ValueError
         after_last_session = \
-            JP_EQUITIES.calendar.last_session + pd.Timedelta(days=20)
+                JP_EQUITIES.calendar.last_session + pd.Timedelta(days=20)
 
         with self.assertRaises(ValueError) as ve:
             JP_EQUITIES.roll_forward(after_last_session)
 
         self.assertEqual(
             str(ve.exception),
-            "Date {} was past the last session for domain "
-            "EquityCalendarDomain('JP', 'XTKS'). The last session for "
-            "this domain is {}.".format(
-                after_last_session.date(),
-                JP_EQUITIES.calendar.last_session.date(),
-            )
+            f"Date {after_last_session.date()} was past the last session for domain EquityCalendarDomain('JP', 'XTKS'). The last session for this domain is {JP_EQUITIES.calendar.last_session.date()}.",
         )
 
         # test that a roll_forward works with an EquitySessionDomain,

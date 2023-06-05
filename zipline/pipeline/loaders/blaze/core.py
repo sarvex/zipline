@@ -281,10 +281,7 @@ def datashape_type_to_numpy(type_):
         return np.dtype('datetime64[ns]')
     if isinstance(type_, String):
         return np.dtype(object)
-    if type_ in integral:
-        return np.dtype('int64')
-    else:
-        return type_.to_numpy_dtype()
+    return np.dtype('int64') if type_ in integral else type_.to_numpy_dtype()
 
 
 @memoize
@@ -370,11 +367,9 @@ def _check_resources(name, expr, resources):
         return
     bound = expr._resources()
     if not bound and resources is None:
-        raise ValueError('no resources provided to compute %s' % name)
+        raise ValueError(f'no resources provided to compute {name}')
     if bound and resources:
-        raise ValueError(
-            'explicit and implicit resources provided to compute %s' % name,
-        )
+        raise ValueError(f'explicit and implicit resources provided to compute {name}')
 
 
 def _check_datetime_field(name, measure):
@@ -418,10 +413,7 @@ class NoMetaDataWarning(UserWarning):
         self._field = field
 
     def __str__(self):
-        return 'No %s could be inferred from expr: %s' % (
-            self._field,
-            self._expr,
-        )
+        return f'No {self._field} could be inferred from expr: {self._expr}'
 
 
 no_metadata_rules = frozenset({'warn', 'raise', 'ignore'})
@@ -463,9 +455,7 @@ def _get_metadata(field, expr, metadata_expr, no_metadata_rule):
         return child[field_name]
     except (ValueError, AttributeError):
         if no_metadata_rule == 'raise':
-            raise ValueError(
-                "no %s table could be reflected for %s" % (field, expr)
-            )
+            raise ValueError(f"no {field} table could be reflected for {expr}")
         elif no_metadata_rule == 'warn':
             warnings.warn(NoMetaDataWarning(expr, field), stacklevel=4)
     return None
@@ -592,20 +582,11 @@ def from_blaze(expr,
         from passing the parent is returned.
     """
     if 'auto' in {deltas, checkpoints}:
-        invalid_nodes = tuple(filter(is_invalid_deltas_node, expr._subterms()))
-        if invalid_nodes:
+        if invalid_nodes := tuple(
+            filter(is_invalid_deltas_node, expr._subterms())
+        ):
             raise TypeError(
-                'expression with auto %s may only contain (%s) nodes,'
-                " found: %s" % (
-                    ' or '.join(
-                        ['deltas'] if deltas is not None else [] +
-                        ['checkpoints'] if checkpoints is not None else [],
-                    ),
-                    ', '.join(map(get__name__, valid_deltas_node_types)),
-                    ', '.join(
-                        set(map(compose(get__name__, type), invalid_nodes)),
-                    ),
-                ),
+                f"expression with auto {' or '.join(['deltas'] if deltas is not None else [] + ['checkpoints'] if checkpoints is not None else [])} may only contain ({', '.join(map(get__name__, valid_deltas_node_types))}) nodes, found: {', '.join(set(map(compose(get__name__, type), invalid_nodes)))}"
             )
     deltas = _get_metadata(
         'deltas',
@@ -635,18 +616,17 @@ def from_blaze(expr,
         # This is a single column. Record which column we are to return
         # but create the entire dataset.
         single_column = rename = expr._name
-        field_hit = False
         if not isinstance(expr, traversable_nodes):
             raise TypeError(
-                "expression '%s' was array-like but not a simple field of"
-                " some larger table" % str(expr),
+                f"expression '{str(expr)}' was array-like but not a simple field of some larger table"
             )
+        field_hit = False
         while isinstance(expr, traversable_nodes):
             if isinstance(expr, bz.expr.Field):
-                if not field_hit:
-                    field_hit = True
-                else:
+                if field_hit:
                     break
+                else:
+                    field_hit = True
             rename = expr._name
             expr = expr._child
         dataset_expr = expr.relabel({rename: single_column})
@@ -710,10 +690,7 @@ def from_blaze(expr,
         None,
         odo_kwargs=odo_kwargs,
     )
-    if single_column is not None:
-        # We were passed a single column, extract and return it.
-        return getattr(ds, single_column)
-    return ds
+    return getattr(ds, single_column) if single_column is not None else ds
 
 
 getdataset = op.attrgetter('dataset')
@@ -751,11 +728,10 @@ class ExprData(object):
             'checkpoints': self.checkpoints,
             'odo_kwargs': self._odo_kwargs,
         }
-        invalid_kwargs = set(kwargs) - set(base_kwargs)
-        if invalid_kwargs:
-            raise TypeError('invalid param(s): %s' % sorted(invalid_kwargs))
+        if invalid_kwargs := set(kwargs) - set(base_kwargs):
+            raise TypeError(f'invalid param(s): {sorted(invalid_kwargs)}')
 
-        base_kwargs.update(kwargs)
+        base_kwargs |= kwargs
         return type(self)(**base_kwargs)
 
     def __iter__(self):

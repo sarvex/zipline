@@ -36,9 +36,7 @@ class SecurityList(object):
         self.asset_finder = asset_finder
 
     def make_knowledge_dates(self, data):
-        knowledge_dates = sorted(
-            [pd.Timestamp(k) for k in data.keys()])
-        return knowledge_dates
+        return sorted([pd.Timestamp(k) for k in data.keys()])
 
     def __iter__(self):
         warnings.warn(

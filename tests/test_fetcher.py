@@ -122,9 +122,7 @@ class FetcherTestCase(WithResponses,
                 self.trading_calendar,
             ),
         )
-        results = test_algo.run()
-
-        return results
+        return test_algo.run()
 
     def test_minutely_fetcher(self):
         self.responses.add(
@@ -179,7 +177,7 @@ def handle_data(context, data):
         # 390 bars of signal 4 on 1/9
         # 390 bars of signal 4 on 1/9 (forward filled)
 
-        np.testing.assert_array_equal([np.NaN] * 390, signal[0:390])
+        np.testing.assert_array_equal([np.NaN] * 390, signal[:390])
         np.testing.assert_array_equal([2] * 390, signal[390:780])
         np.testing.assert_array_equal([3] * 780, signal[780:1560])
         np.testing.assert_array_equal([4] * 780, signal[1560:])
@@ -397,7 +395,7 @@ def handle_data(context, data):
         # using responses that the fetch_url code is getting a good workout so
         # we don't have to use it in every test.
         with patch('zipline.sources.requests_csv.PandasRequestsCSV.fetch_url',
-                   new=lambda *a, **k: data):
+                       new=lambda *a, **k: data):
             sim_params = factory.create_simulation_parameters(
                 start=pd.Timestamp("2006-01-09", tz='UTC'),
                 end=pd.Timestamp("2006-01-11", tz='UTC')
@@ -433,9 +431,7 @@ def handle_data(context, data):
     record(bar_count=context.bar_count)
     context.bar_count += 1
             """
-            replacement = ""
-            if column_name:
-                replacement = ",symbol_column='%s'\n" % column_name
+            replacement = ",symbol_column='%s'\n" % column_name if column_name else ""
             real_algocode = algocode.format(token=replacement)
 
             results = self.run_algo(real_algocode, sim_params=sim_params)
@@ -580,7 +576,7 @@ def before_trading_start(context, data):
 """, sim_params=sim_params)
 
         values = results["Short_Interest"]
-        np.testing.assert_array_equal(values[0:33], np.full(33, np.nan))
+        np.testing.assert_array_equal(values[:33], np.full(33, np.nan))
         np.testing.assert_array_almost_equal(values[33:44], [1.690317] * 11)
         np.testing.assert_array_almost_equal(values[44:55], [2.811858] * 11)
         np.testing.assert_array_almost_equal(values[55:64], [2.50233] * 9)

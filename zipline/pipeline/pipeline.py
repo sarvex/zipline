@@ -120,7 +120,7 @@ class Pipeline(object):
             if overwrite:
                 self.remove(name)
             else:
-                raise KeyError("Column '{}' already exists.".format(name))
+                raise KeyError(f"Column '{name}' already exists.")
 
         if not isinstance(term, ComputableTerm):
             raise TypeError(
@@ -204,8 +204,7 @@ class Pipeline(object):
         """
         if self._domain is not GENERIC and self._domain is not domain:
             raise AssertionError(
-                "Attempted to compile Pipeline with domain {} to execution "
-                "plan with different domain {}.".format(self._domain, domain)
+                f"Attempted to compile Pipeline with domain {self._domain} to execution plan with different domain {domain}."
             )
 
         return ExecutionPlan(
@@ -315,17 +314,16 @@ class Pipeline(object):
         if inferred is GENERIC and self._domain is GENERIC:
             # Both generic. Fall back to default.
             return default
-        elif inferred is GENERIC and self._domain is not GENERIC:
+        elif inferred is GENERIC:
             # Use the non-generic domain.
             return self._domain
-        elif inferred is not GENERIC and self._domain is GENERIC:
+        elif self._domain is GENERIC:
             # Use the non-generic domain.
             return inferred
         else:
             # Both non-generic. They have to match.
             if inferred is not self._domain:
                 raise ValueError(
-                    "Conflicting domains in Pipeline. Inferred {}, but {} was "
-                    "passed at construction.".format(inferred, self._domain)
+                    f"Conflicting domains in Pipeline. Inferred {inferred}, but {self._domain} was passed at construction."
                 )
             return inferred

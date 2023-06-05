@@ -112,10 +112,7 @@ def _build_offset(offset, kwargs, default):
     # Filter down to just kwargs that were actually passed.
     kwargs = {k: v for k, v in six.iteritems(kwargs) if v is not None}
     if offset is None:
-        if not kwargs:
-            return default  # use the default.
-        else:
-            return _td_check(datetime.timedelta(**kwargs))
+        return default if not kwargs else _td_check(datetime.timedelta(**kwargs))
     elif kwargs:
         raise ValueError('Cannot pass kwargs and an offset')
     elif isinstance(offset, datetime.timedelta):
@@ -491,7 +488,7 @@ class TradingDayOfWeekRule(six.with_metaclass(ABCMeta, StatelessRule)):
         return set(
             pd.Series(data=sessions)
             # Group by ISO year (0) and week (1)
-            .groupby(sessions.map(lambda x: x.isocalendar()[0:2]))
+            .groupby(sessions.map(lambda x: x.isocalendar()[:2]))
             .nth(self.td_delta)
             .astype(np.int64)
         )
@@ -520,10 +517,7 @@ class TradingDayOfMonthRule(six.with_metaclass(ABCMeta, StatelessRule)):
     def __init__(self, n, invert):
         if not 0 <= n < MAX_MONTH_RANGE:
             raise _out_of_range_error(MAX_MONTH_RANGE)
-        if invert:
-            self.td_delta = -n - 1
-        else:
-            self.td_delta = n
+        self.td_delta = -n - 1 if invert else n
 
     def should_trigger(self, dt):
         # is this market minute's period in the list of execution periods?
@@ -794,7 +788,7 @@ def _check_if_not_called(v):
 
     msg = 'invalid rule: %r' % (v,)
     if name is not None:
-        msg += ' (hint: did you mean %s())' % name
+        msg += f' (hint: did you mean {name}())'
 
     raise TypeError(msg)
 

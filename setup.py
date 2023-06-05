@@ -180,16 +180,11 @@ def _conda_format(req):
             name = 'pytables'
 
         comp, spec = m.group('comp', 'spec')
-        if comp and spec:
-            formatted = '%s %s%s' % (name, comp, spec)
-        else:
-            formatted = name
+        formatted = f'{name} {comp}{spec}' if comp and spec else name
         pycomp, pyspec = m.group('pycomp', 'pyspec')
         if pyspec:
             # Compare the two-digit string versions as ints.
-            selector = ' # [int(py) %s int(%s)]' % (
-                pycomp, ''.join(pyspec.split('.')[:2]).ljust(2, '0')
-            )
+            selector = f" # [int(py) {pycomp} int({''.join(pyspec.split('.')[:2]).ljust(2, '0')})]"
             return formatted + selector
 
         return formatted
@@ -238,8 +233,7 @@ def setup_requirements(requirements_path, module_names,
 
     if len(set(module_lines)) != len(module_names):
         raise AssertionError(
-            "Missing requirements. Looking for %s, but found %s."
-            % (module_names, module_lines)
+            f"Missing requirements. Looking for {module_names}, but found {module_lines}."
         )
     return module_lines
 

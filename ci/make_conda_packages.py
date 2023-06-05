@@ -17,8 +17,7 @@ def iter_stdout(cmd):
         for line in iter(p.stdout.readline, b''):
             yield line.decode().rstrip()
     finally:
-        retcode = p.wait()
-        if retcode:
+        if retcode := p.wait():
             raise subprocess.CalledProcessError(retcode, cmd[0])
 
 
@@ -44,8 +43,7 @@ def main(env, do_upload):
             print(line)
 
             if not output:
-                match = PKG_PATH_PATTERN.match(line)
-                if match:
+                if match := PKG_PATH_PATTERN.match(line):
                     output = match.group('pkg_path')
 
         if do_upload:
@@ -56,9 +54,9 @@ def main(env, do_upload):
                 for line in iter_stdout(cmd):
                     print(line)
             elif output:
-                print('No package found at path %s.' % output)
+                print(f'No package found at path {output}.')
             else:
-                print('No package path for %s found.' % recipe)
+                print(f'No package path for {recipe} found.')
 
 
 if __name__ == '__main__':

@@ -230,14 +230,11 @@ class SlippageTestCase(WithCreateBarData,
         txn = orders_txns[0][1]
 
         expected_txn = {
-            'price': float(3.50021875),
-            'dt': datetime.datetime(
-                2006, 1, 5, 14, 34, tzinfo=pytz.utc),
-            # we ordered 100 shares, but default volume slippage only allows
-            # for 2.5% of the volume.  2.5% * 2000 = 50 shares
-            'amount': int(50),
+            'price': 3.50021875,
+            'dt': datetime.datetime(2006, 1, 5, 14, 34, tzinfo=pytz.utc),
+            'amount': 50,
             'asset': self.ASSET133,
-            'order_id': open_orders[0].id
+            'order_id': open_orders[0].id,
         }
 
         self.assertIsNotNone(txn)
@@ -313,10 +310,9 @@ class SlippageTestCase(WithCreateBarData,
         _, txn = orders_txns[0]
 
         expected_txn = {
-            'price': float(3.49978125),
-            'dt': datetime.datetime(
-                2006, 1, 5, 14, 32, tzinfo=pytz.utc),
-            'amount': int(-50),
+            'price': 3.49978125,
+            'dt': datetime.datetime(2006, 1, 5, 14, 32, tzinfo=pytz.utc),
+            'amount': -50,
             'asset': self.ASSET133,
         }
 
@@ -436,11 +432,10 @@ class SlippageTestCase(WithCreateBarData,
         _, txn = orders_txns[0]
 
         expected_txn = {
-            'price': float(3.50021875),
-            'dt': datetime.datetime(
-                2006, 1, 5, 14, 34, tzinfo=pytz.utc),
-            'amount': int(50),
-            'asset': self.ASSET133
+            'price': 3.50021875,
+            'dt': datetime.datetime(2006, 1, 5, 14, 34, tzinfo=pytz.utc),
+            'amount': 50,
+            'asset': self.ASSET133,
         }
 
         for key, value in expected_txn.items():
@@ -554,9 +549,9 @@ class SlippageTestCase(WithCreateBarData,
         _, txn = orders_txns[0]
 
         expected_txn = {
-            'price': float(3.49978125),
+            'price': 3.49978125,
             'dt': datetime.datetime(2006, 1, 5, 14, 32, tzinfo=pytz.utc),
-            'amount': int(-50),
+            'amount': -50,
             'asset': self.ASSET133,
         }
 
@@ -659,12 +654,12 @@ class VolumeShareSlippageTestCase(WithCreateBarData,
         _, txn = orders_txns[0]
 
         expected_txn = {
-            'price': float(3.0001875),
+            'price': 3.0001875,
             'dt': datetime.datetime(2006, 1, 5, 14, 31, tzinfo=pytz.utc),
-            'amount': int(5),
+            'amount': 5,
             'asset': self.ASSET133,
             'type': DATASOURCE_TYPE.TRANSACTION,
-            'order_id': open_orders[0].id
+            'order_id': open_orders[0].id,
         }
 
         self.assertIsNotNone(txn)

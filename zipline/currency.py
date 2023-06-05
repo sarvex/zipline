@@ -60,9 +60,7 @@ class Currency(object):
         return self._name
 
     def __eq__(self, other):
-        if type(self) != type(other):
-            return NotImplemented
-        return self.code == other.code
+        return NotImplemented if type(self) != type(other) else self.code == other.code
 
     def __hash__(self):
         return hash(self.code)

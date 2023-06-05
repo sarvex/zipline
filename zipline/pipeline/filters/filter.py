@@ -107,7 +107,7 @@ def binary_operator(op):
             )
         raise BadBinaryOperator(op, self, other)
 
-    binary_operator.__doc__ = "Binary Operator: '%s'" % op
+    binary_operator.__doc__ = f"Binary Operator: '{op}'"
     return binary_operator
 
 
@@ -117,7 +117,7 @@ def unary_operator(op):
     """
     valid_ops = {'~'}
     if op not in valid_ops:
-        raise ValueError("Invalid unary operator %s." % op)
+        raise ValueError(f"Invalid unary operator {op}.")
 
     def unary_operator(self):
         # This can't be hoisted up a scope because the types returned by
@@ -131,7 +131,7 @@ def unary_operator(op):
         else:
             return NumExprFilter.create("{op}x_0".format(op=op), (self,))
 
-    unary_operator.__doc__ = "Unary Operator: '%s'" % op
+    unary_operator.__doc__ = f"Unary Operator: '{op}'"
     return unary_operator
 
 
@@ -285,22 +285,17 @@ class Filter(RestrictedDTypeMixin, ComputableTerm):
 
         if true_type is not false_type:
             raise TypeError(
-                "Mismatched types in if_else(): if_true={}, but if_false={}"
-                .format(true_type.__name__, false_type.__name__)
+                f"Mismatched types in if_else(): if_true={true_type.__name__}, but if_false={false_type.__name__}"
             )
 
         if if_true.dtype != if_false.dtype:
             raise TypeError(
-                "Mismatched dtypes in if_else(): "
-                "if_true.dtype = {}, if_false.dtype = {}"
-                .format(if_true.dtype, if_false.dtype)
+                f"Mismatched dtypes in if_else(): if_true.dtype = {if_true.dtype}, if_false.dtype = {if_false.dtype}"
             )
 
         if if_true.outputs != if_false.outputs:
             raise ValueError(
-                "Mismatched outputs in if_else(): "
-                "if_true.outputs = {}, if_false.outputs = {}"
-                .format(if_true.outputs, if_false.outputs),
+                f"Mismatched outputs in if_else(): if_true.outputs = {if_true.outputs}, if_false.outputs = {if_false.outputs}"
             )
 
         if not same(if_true.missing_value, if_false.missing_value):
@@ -368,7 +363,8 @@ class NullFilter(SingleInputMixin, Filter):
         data = arrays[0]
         if isinstance(data, LabelArray):
             return data.is_missing()
-        return is_missing(arrays[0], self.inputs[0].missing_value)
+        else:
+            return is_missing(data, self.inputs[0].missing_value)
 
 
 class NotNullFilter(SingleInputMixin, Filter):
@@ -392,7 +388,8 @@ class NotNullFilter(SingleInputMixin, Filter):
         data = arrays[0]
         if isinstance(data, LabelArray):
             return ~data.is_missing()
-        return ~is_missing(arrays[0], self.inputs[0].missing_value)
+        else:
+            return ~is_missing(data, self.inputs[0].missing_value)
 
 
 class PercentileFilter(SingleInputMixin, Filter):
@@ -474,11 +471,7 @@ class PercentileFilter(SingleInputMixin, Filter):
 
     def graph_repr(self):
         # Graphviz interprets `\l` as "divide label into lines, left-justified"
-        return "{}:\\l  min: {}, max: {}\\l".format(
-            type(self).__name__,
-            self._min_percentile,
-            self._max_percentile,
-        )
+        return f"{type(self).__name__}:\\l  min: {self._min_percentile}, max: {self._max_percentile}\\l"
 
 
 class CustomFilter(PositiveWindowLengthMixin, CustomTermMixin, Filter):
@@ -584,11 +577,7 @@ class ArrayPredicate(SingleInputMixin, Filter):
 
     def graph_repr(self):
         # Graphviz interprets `\l` as "divide label into lines, left-justified"
-        return "{}:\\l  op: {}.{}()".format(
-            type(self).__name__,
-            self.params['op'].__module__,
-            self.params['op'].__name__,
-        )
+        return f"{type(self).__name__}:\\l  op: {self.params['op'].__module__}.{self.params['op'].__name__}()"
 
 
 class Latest(LatestMixin, CustomFilter):
@@ -738,15 +727,8 @@ class MaximumFilter(Filter, StandardOutputs):
         )
 
     def __repr__(self):
-        return "Maximum({}, groupby={}, mask={})".format(
-            self.inputs[0].recursive_repr(),
-            self.inputs[1].recursive_repr(),
-            self.mask.recursive_repr(),
-        )
+        return f"Maximum({self.inputs[0].recursive_repr()}, groupby={self.inputs[1].recursive_repr()}, mask={self.mask.recursive_repr()})"
 
     def graph_repr(self):
         # Graphviz interprets `\l` as "divide label into lines, left-justified"
-        return "Maximum:\\l  groupby: {}\\l  mask: {}\\l".format(
-            self.inputs[1].recursive_repr(),
-            self.mask.recursive_repr(),
-        )
+        return f"Maximum:\\l  groupby: {self.inputs[1].recursive_repr()}\\l  mask: {self.mask.recursive_repr()}\\l"

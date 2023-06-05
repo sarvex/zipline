@@ -1,6 +1,7 @@
 """
 Dependency-Graph representation of Pipeline API terms.
 """
+
 import uuid
 
 import networkx as nx
@@ -20,7 +21,7 @@ class CyclicDependency(Exception):
 #
 # (Yes, technically, a user can import this file and pass this as the name of a
 # column. If you do that you deserve whatever bizarre failure you cause.)
-SCREEN_NAME = 'screen_' + uuid.uuid4().hex
+SCREEN_NAME = f'screen_{uuid.uuid4().hex}'
 
 
 class TermGraph(object):
@@ -79,9 +80,7 @@ class TermGraph(object):
         so far. It is only used to detect dependency cycles.
         """
         if self._frozen:
-            raise ValueError(
-                "Can't mutate %s after construction." % type(self).__name__
-            )
+            raise ValueError(f"Can't mutate {type(self).__name__} after construction.")
 
         # If we've seen this node already as a parent of the current traversal,
         # it means we have an unsatisifiable dependency.  This should only be
@@ -513,6 +512,4 @@ class ExecutionPlan(TermGraph):
 def maybe_specialize(term, domain):
     """Specialize a term if it's loadable.
     """
-    if isinstance(term, LoadableTerm):
-        return term.specialize(domain)
-    return term
+    return term.specialize(domain) if isinstance(term, LoadableTerm) else term

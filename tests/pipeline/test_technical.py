@@ -328,10 +328,7 @@ class IchimokuKinkoHyoTestCase(ZiplineTestCase):
         with self.assertRaises(ValueError) as e:
             IchimokuKinkoHyo(**{arg: window_length + 1})
 
-        assert_equal(
-            str(e.exception),
-            '%s must be <= the window_length: 53 > 52' % arg,
-        )
+        assert_equal(str(e.exception), f'{arg} must be <= the window_length: 53 > 52')
 
 
 class TestRateOfChangePercentage(ZiplineTestCase):

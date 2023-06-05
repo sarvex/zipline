@@ -56,15 +56,15 @@ class ComposeTypesTestCase(ZiplineTestCase):
 
 
 class M(type):
-    def __new__(mcls, name, bases, dict_):
+    def __new__(cls, name, bases, dict_):
         dict_['M'] = True
-        return super(M, mcls).__new__(mcls, name, bases, dict_)
+        return super(M, cls).__new__(cls, name, bases, dict_)
 
 
 class N(type):
-    def __new__(mcls, name, bases, dict_):
+    def __new__(cls, name, bases, dict_):
         dict_['N'] = True
-        return super(N, mcls).__new__(mcls, name, bases, dict_)
+        return super(N, cls).__new__(cls, name, bases, dict_)
 
 
 class WithMetaclassesTestCase(ZiplineTestCase):

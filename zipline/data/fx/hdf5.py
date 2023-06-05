@@ -133,9 +133,7 @@ class HDF5FXRateReader(implements(FXRateReader)):
 
         if self.version != HDF5_FX_VERSION:
             raise ValueError(
-                "FX Reader version ({}) != File Version ({})".format(
-                    HDF5_FX_VERSION, self.version,
-                )
+                f"FX Reader version ({HDF5_FX_VERSION}) != File Version ({self.version})"
             )
 
     @classmethod
@@ -167,7 +165,7 @@ class HDF5FXRateReader(implements(FXRateReader)):
         """
         raw_dts = self._group[INDEX][DTS][:].astype('M8[ns]')
         if not is_sorted_ascending(raw_dts):
-            raise ValueError("dts are not sorted for {}!".format(self._group))
+            raise ValueError(f"dts are not sorted for {self._group}!")
 
         return pd.DatetimeIndex(raw_dts, tz='UTC')
 
@@ -198,8 +196,7 @@ class HDF5FXRateReader(implements(FXRateReader)):
             dataset = self._group[DATA][rate][quote][RATES]
         except KeyError:
             raise ValueError(
-                "FX rates not available for rate={}, quote_currency={}."
-                .format(rate, quote)
+                f"FX rates not available for rate={rate}, quote_currency={quote}."
             )
 
         # OPTIMIZATION: Column indices correspond to dates, which must be in
@@ -304,9 +301,7 @@ class HDF5FXRateWriter(object):
         for rate, quote, array in data:
             if array.shape != expected_shape:
                 raise ValueError(
-                    "Unexpected shape for rate={}, quote={}."
-                    "\nExpected shape: {}. Got {}."
-                    .format(rate, quote, expected_shape, array.shape)
+                    f"Unexpected shape for rate={rate}, quote={quote}.\nExpected shape: {expected_shape}. Got {array.shape}."
                 )
 
             self._log_writing(DATA, rate, quote)

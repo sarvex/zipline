@@ -70,11 +70,11 @@ class AssetDispatchBarReader(with_metaclass(ABCMeta)):
         return self._dt_window_size(start_dt, end_dt), num_sids
 
     def _make_raw_array_out(self, field, shape):
-        if field != 'volume' and field != 'sid':
-            out = full(shape, nan)
-        else:
-            out = zeros(shape, dtype=int64)
-        return out
+        return (
+            full(shape, nan)
+            if field not in ['volume', 'sid']
+            else zeros(shape, dtype=int64)
+        )
 
     @property
     def trading_calendar(self):

@@ -488,13 +488,10 @@ class CommissionAlgorithmTests(WithMakeAlgo, ZiplineTestCase):
     def test_per_contract(self, min_trade_cost, expected_commission):
         results = self.get_results(
             self.code.format(
-                commission=(
-                    'set_commission(us_futures=commission.PerContract('
-                    'cost=0.05, exchange_fee=1.3, min_trade_cost={}))'
-                ).format(min_trade_cost),
+                commission=f'set_commission(us_futures=commission.PerContract(cost=0.05, exchange_fee=1.3, min_trade_cost={min_trade_cost}))',
                 sid=1000,
                 amount=10,
-            ),
+            )
         )
 
         self.assertEqual(

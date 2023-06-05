@@ -27,8 +27,9 @@ from six import iteritems, b
 def hash_args(*args, **kwargs):
     """Define a unique string for any set of representable args."""
     arg_string = '_'.join([str(arg) for arg in args])
-    kwarg_string = '_'.join([str(key) + '=' + str(value)
-                             for key, value in iteritems(kwargs)])
+    kwarg_string = '_'.join(
+        [f'{str(key)}={str(value)}' for key, value in iteritems(kwargs)]
+    )
     combined = ':'.join([arg_string, kwarg_string])
 
     hasher = md5()
@@ -42,7 +43,7 @@ def assert_datasource_protocol(event):
     assert event.type in DATASOURCE_TYPE
 
     # Done packets have no dt.
-    if not event.type == DATASOURCE_TYPE.DONE:
+    if event.type != DATASOURCE_TYPE.DONE:
         assert isinstance(event.dt, datetime)
         assert event.dt.tzinfo == pytz.utc
 

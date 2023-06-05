@@ -23,21 +23,18 @@ class FinancialModelMeta(ABCMeta):
     manually allowing both equities and futures for the class being created.
     """
 
-    def __new__(mcls, name, bases, dict_):
+    def __new__(cls, name, bases, dict_):
         if 'allowed_asset_types' not in dict_:
-            allowed_asset_types = tuple(
+            if allowed_asset_types := tuple(
                 chain.from_iterable(
                     marker.allowed_asset_types
                     for marker in bases
                     if isinstance(marker, AllowedAssetMarker)
                 )
-            )
-            if allowed_asset_types:
+            ):
                 dict_['allowed_asset_types'] = allowed_asset_types
 
-        return super(FinancialModelMeta, mcls).__new__(
-            mcls, name, bases, dict_,
-        )
+        return super(FinancialModelMeta, cls).__new__(cls, name, bases, dict_)
 
 
 class AllowedAssetMarker(FinancialModelMeta):

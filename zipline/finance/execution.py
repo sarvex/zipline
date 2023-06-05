@@ -193,15 +193,13 @@ def asymmetric_round_price(price, prefer_round_down, tick_size, diff=0.95):
     # bound on buys and the lower bound on sells.  Using the actual system
     # epsilon doesn't quite get there, so use a slightly less epsilon-ey value.
     epsilon = float_info.epsilon * 10
-    diff = diff - epsilon
+    diff -= epsilon
 
     # relies on rounding half away from zero, unlike numpy's bankers' rounding
     rounded = tick_size * consistent_round(
         (price - (diff if prefer_round_down else -diff)) / tick_size
     )
-    if zp_math.tolerant_equals(rounded, 0.0):
-        return 0.0
-    return rounded
+    return 0.0 if zp_math.tolerant_equals(rounded, 0.0) else rounded
 
 
 def check_stoplimit_prices(price, label):
@@ -212,17 +210,14 @@ def check_stoplimit_prices(price, label):
     try:
         if not isfinite(price):
             raise BadOrderParameters(
-                msg="Attempted to place an order with a {} price "
-                    "of {}.".format(label, price)
+                msg=f"Attempted to place an order with a {label} price of {price}."
             )
-    # This catches arbitrary objects
     except TypeError:
         raise BadOrderParameters(
-            msg="Attempted to place an order with a {} price "
-                "of {}.".format(label, type(price))
+            msg=f"Attempted to place an order with a {label} price of {type(price)}."
         )
 
     if price < 0:
         raise BadOrderParameters(
-            msg="Can't place a {} order with a negative price.".format(label)
+            msg=f"Can't place a {label} order with a negative price."
         )

@@ -102,8 +102,7 @@ class Order(object):
 
     def to_api_obj(self):
         pydict = self.to_dict()
-        obj = zp.Order(initial_values=pydict)
-        return obj
+        return zp.Order(initial_values=pydict)
 
     def check_triggers(self, price, dt):
         """
@@ -236,10 +235,7 @@ class Order(object):
         if self.stop is not None and not self.stop_reached:
             return False
 
-        if self.limit is not None and not self.limit_reached:
-            return False
-
-        return True
+        return bool(self.limit is None or self.limit_reached)
 
     @property
     def open_amount(self):
@@ -249,7 +245,7 @@ class Order(object):
         """
         String representation for this object.
         """
-        return "Order(%s)" % self.to_dict().__repr__()
+        return f"Order({self.to_dict().__repr__()})"
 
     def __unicode__(self):
         """

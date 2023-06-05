@@ -203,7 +203,7 @@ def last_in_date_group(df,
             last_in_group = last_in_group.reindex(
                 index=data_query_cutoff_times,
                 columns=pd.MultiIndex.from_product(
-                    tuple(cols.levels[0:len(extra_groupers) + 1]) + (assets,),
+                    tuple(cols.levels[: len(extra_groupers) + 1]) + (assets,),
                     names=cols.names,
                 ),
             )
@@ -307,7 +307,7 @@ def shift_dates(dates, start_date, end_date, shift):
                 )
             )
         else:
-            raise ValueError("Query start %s not in calendar" % start_date)
+            raise ValueError(f"Query start {start_date} not in calendar")
 
     # Make sure that shifting doesn't push us out of the calendar.
     if start < shift:
@@ -333,6 +333,6 @@ def shift_dates(dates, start_date, end_date, shift):
                 )
             )
         else:
-            raise ValueError("Query end %s not in calendar" % end_date)
+            raise ValueError(f"Query end {end_date} not in calendar")
 
     return dates[start - shift:end - shift + 1]  # +1 to be inclusive

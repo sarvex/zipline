@@ -81,7 +81,7 @@ class _UnionRestrictions(Restrictions):
         sub_restrictions = [
             r for r in sub_restrictions if not isinstance(r, NoRestrictions)
         ]
-        if len(sub_restrictions) == 0:
+        if not sub_restrictions:
             return NoRestrictions()
         elif len(sub_restrictions) == 1:
             return sub_restrictions[0]

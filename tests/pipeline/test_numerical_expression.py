@@ -230,7 +230,7 @@ class NumericalExpressionTestCase(TestCase):
 
     def test_combine_datetime_with_float(self):
         # Test with both float-type factors and numeric values.
-        for float_value in (self.f, float64(1.0), 1.0):
+        for _ in (self.f, float64(1.0), 1.0):
             for op, sym in ((add, '+'), (mul, '*')):
                 with self.assertRaises(TypeError) as e:
                     op(self.f, self.d)
@@ -382,14 +382,8 @@ class NumericalExpressionTestCase(TestCase):
             f / (g / 2),
             3.0 / (2.0 / 2),
         )
-        self.check_constant_output(
-            (f / f) / f,
-            (3.0 / 3.0) / 3.0
-        )
-        self.check_constant_output(
-            f / (f / f),
-            3.0 / (3.0 / 3.0),
-        )
+        self.check_constant_output((f / f) / f, 1.0 / 3.0)
+        self.check_constant_output(f / (f / f), 3.0 / 1.0)
         self.check_constant_output(
             (f / g) / f,
             (3.0 / 2.0) / 3.0,
@@ -445,7 +439,7 @@ class NumericalExpressionTestCase(TestCase):
         self.check_constant_output(2 % (f + g), 2 % (3.0 + 2.0))
 
         self.check_constant_output(f % (f % g), 3.0 % (3.0 % 2.0))
-        self.check_constant_output((f % f) % g, (3.0 % 3.0) % 2.0)
+        self.check_constant_output((f % f) % g, 0.0 % 2.0)
 
         self.check_constant_output((f + g) % (f * g), 5.0 % 6.0)
 

@@ -78,7 +78,7 @@ def compose_types(a, *cs):
 
     mcls = (a,) + cs
     return type(
-        'compose_types(%s)' % ', '.join(map(attrgetter('__name__'), mcls)),
+        f"compose_types({', '.join(map(attrgetter('__name__'), mcls))})",
         mcls,
         {},
     )

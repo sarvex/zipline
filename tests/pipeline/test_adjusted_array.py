@@ -165,14 +165,10 @@ def _gen_multiplicative_adjustment_cases(dtype):
     }[dtype]
 
     nrows, ncols = 6, 3
-    adjustments = {}
     buffer_as_of = [None] * 6
     baseline = buffer_as_of[0] = full((nrows, ncols), 1, dtype=dtype)
 
-    # Note that row indices are inclusive!
-    adjustments[1] = [
-        adjustment_type(0, 0, 0, 0, coerce_to_dtype(dtype, 2)),
-    ]
+    adjustments = {1: [adjustment_type(0, 0, 0, 0, coerce_to_dtype(dtype, 2))]}
     buffer_as_of[1] = array([[2, 1, 1],
                              [1, 1, 1],
                              [1, 1, 1],
@@ -351,7 +347,6 @@ def _gen_overwrite_1d_array_adjustment_case(dtype):
     make_expected_dtype = as_dtype(dtype)
     missing_value = default_missing_value_for_dtype(datetime64ns_dtype)
 
-    adjustments = {}
     buffer_as_of = [None] * 6
     baseline = make_expected_dtype([[2, 2, 2],
                                     [2, 2, 2],
@@ -368,13 +363,17 @@ def _gen_overwrite_1d_array_adjustment_case(dtype):
                                            [2, 2, 2]])
 
     vals1 = [1]
-    # Note that row indices are inclusive!
-    adjustments[1] = [
-        adjustment_type(
-            0, 0, 0, 0,
-            array([coerce_to_dtype(dtype, val) for val in vals1])
-        )
-    ]
+    adjustments = {
+        1: [
+            adjustment_type(
+                0,
+                0,
+                0,
+                0,
+                array([coerce_to_dtype(dtype, val) for val in vals1]),
+            )
+        ]
+    }
     buffer_as_of[1] = make_expected_dtype([[1, 2, 2],
                                            [2, 2, 2],
                                            [2, 2, 2],
@@ -472,9 +471,7 @@ def _gen_expectations(baseline,
             # perspective_offset can push us past the end of the underlying
             # buffer/adjustments. When it does, we should always see the latest
             # version of the buffer.
-            if p >= len(buffer_as_of):
-                return buffer_as_of[-1]
-            return buffer_as_of[p]
+            return buffer_as_of[-1] if p >= len(buffer_as_of) else buffer_as_of[p]
 
         expected_iterator_results = [
             as_of(perspective)[slice_]
@@ -714,7 +711,7 @@ class AdjustedArrayTestCase(TestCase):
 
     def test_object1darrayoverwrite(self):
         pairs = [u + l for u, l in product(ascii_uppercase, ascii_lowercase)]
-        categories = pairs + ['~' + c for c in pairs]
+        categories = pairs + [f'~{c}' for c in pairs]
         baseline = LabelArray(
             array([[''.join((r, c)) for c in 'abc'] for r in ascii_uppercase]),
             None,
@@ -725,9 +722,7 @@ class AdjustedArrayTestCase(TestCase):
         def flip(cs):
             if cs is None:
                 return None
-            if cs[0] != '~':
-                return '~' + cs
-            return cs
+            return f'~{cs}' if cs[0] != '~' else cs
 
         def make_overwrite(fr, lr, fc, lc):
             fr, lr, fc, lc = map(ord, (fr, lr, fc, lc))
@@ -852,7 +847,7 @@ last_col=0, value=4.000000)]}
             missing_value='',
         )
 
-        adj_array.update_labels(lambda x: x + '-foo')
+        adj_array.update_labels(lambda x: f'{x}-foo')
 
         # Check that the mapped AdjustedArray has the expected baseline
         # values and adjustment values.

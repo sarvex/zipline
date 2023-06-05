@@ -113,11 +113,7 @@ class TestAlgorithm(TradingAlgorithm):
         self.amount = amount
         self.incr = 0
 
-        if sid_filter:
-            self.sid_filter = sid_filter
-        else:
-            self.sid_filter = [self.asset.sid]
-
+        self.sid_filter = sid_filter if sid_filter else [self.asset.sid]
         if slippage is not None:
             self.set_slippage(slippage)
 
@@ -170,7 +166,6 @@ class DivByZeroAlgorithm(TradingAlgorithm):
         self.incr += 1
         if self.incr > 1:
             5 / 0
-        pass
 
 
 ############################
@@ -207,7 +202,7 @@ class TALIBAlgorithm(TradingAlgorithm):
         else:
             self.talib_transforms = kwargs['talib']
 
-        self.talib_results = dict((t, []) for t in self.talib_transforms)
+        self.talib_results = {t: [] for t in self.talib_transforms}
 
     def handle_data(self, data):
         for t in self.talib_transforms:
@@ -241,10 +236,7 @@ class EmptyPositionsAlgorithm(TradingAlgorithm):
             amounts = [pos.amount for pos
                        in itervalues(self.portfolio.positions)]
 
-            if (
-                len(amounts) > 0 and
-                all([(amount == 1) for amount in amounts])
-            ):
+            if amounts and all(amount == 1 for amount in amounts):
                 for stock in self.portfolio.positions:
                     self.order(self.sid(stock), -1)
                 self.exited = True

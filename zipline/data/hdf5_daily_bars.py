@@ -526,10 +526,7 @@ class HDF5DailyBarReader(CurrencyAwareSessionBarReader):
         """
         if h5_file.attrs['version'] != VERSION:
             raise ValueError(
-                'mismatched version: file is of version %s, expected %s' % (
-                    h5_file.attrs['version'],
-                    VERSION,
-                ),
+                f"mismatched version: file is of version {h5_file.attrs['version']}, expected {VERSION}"
             )
 
         return cls(h5_file[country_code])
@@ -669,9 +666,7 @@ class HDF5DailyBarReader(CurrencyAwareSessionBarReader):
 
         if len(missing_sids):
             raise NoDataForSid(
-                'Assets not contained in daily pricing file: {}'.format(
-                    missing_sids
-                )
+                f'Assets not contained in daily pricing file: {missing_sids}'
             )
 
     def _validate_timestamp(self, ts):
@@ -912,10 +907,7 @@ class MultiCountryDailyBarReader(CurrencyAwareSessionBarReader):
             raise ValueError('At least one valid asset id is required.')
         elif num_countries > 1:
             raise NotImplementedError(
-                (
-                    'Assets were requested from multiple countries ({}),'
-                    ' but multi-country reads are not yet supported.'
-                ).format(list(unique_country_codes))
+                f'Assets were requested from multiple countries ({list(unique_country_codes)}), but multi-country reads are not yet supported.'
             )
 
         return np.asscalar(unique_country_codes)
@@ -1036,10 +1028,8 @@ class MultiCountryDailyBarReader(CurrencyAwareSessionBarReader):
             country_code = self._country_code_for_assets([sid])
         except ValueError as exc:
             raise_from(
-                NoDataForSid(
-                    'Asset not contained in daily pricing file: {}'.format(sid)
-                ),
-                exc
+                NoDataForSid(f'Asset not contained in daily pricing file: {sid}'),
+                exc,
             )
         return self._readers[country_code].get_value(sid, dt, field)
 
@@ -1089,14 +1079,10 @@ def check_sids_arrays_match(left, right, message):
     """
     if len(left) != len(right):
         raise ValueError(
-            "{}:\nlen(left) ({}) != len(right) ({})".format(
-                message, len(left), len(right)
-            )
+            f"{message}:\nlen(left) ({len(left)}) != len(right) ({len(right)})"
         )
 
     diff = (left != right)
     if diff.any():
         (bad_locs,) = np.where(diff)
-        raise ValueError(
-            "{}:\n Indices with differences: {}".format(message, bad_locs)
-        )
+        raise ValueError(f"{message}:\n Indices with differences: {bad_locs}")

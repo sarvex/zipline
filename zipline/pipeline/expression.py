@@ -155,9 +155,7 @@ def method_name_for_op(op, commute=False):
     >>> method_name_for_op('>', commute=True)
     '__lt__'
     """
-    if commute:
-        return ops_to_commuted_methods[op]
-    return ops_to_methods[op]
+    return ops_to_commuted_methods[op] if commute else ops_to_methods[op]
 
 
 def unary_op_name(op):
@@ -222,18 +220,16 @@ class NumericalExpression(ComputableTerm):
         for name in variable_names:
             if name == 'inf':
                 continue
-            match = _VARIABLE_NAME_RE.match(name)
-            if not match:
-                raise ValueError("%r is not a valid variable name" % name)
-            expr_indices.append(int(match.group(2)))
+            if match := _VARIABLE_NAME_RE.match(name):
+                expr_indices.append(int(match.group(2)))
 
+            else:
+                raise ValueError("%r is not a valid variable name" % name)
         expr_indices.sort()
         expected_indices = list(range(len(self.inputs)))
         if expr_indices != expected_indices:
             raise ValueError(
-                "Expected %s for variable indices, but got %s" % (
-                    expected_indices, expr_indices,
-                )
+                f"Expected {expected_indices} for variable indices, but got {expr_indices}"
             )
         super(NumericalExpression, self)._validate()
 
@@ -343,6 +339,4 @@ class NumericalExpression(ComputableTerm):
                        lambda x: format(float(x.group(0)), '.2E'),
                        self._expr)
         # Graphviz interprets `\l` as "divide label into lines, left-justified"
-        return "Expression:\\l  {}\\l".format(
-            final,
-        )
+        return f"Expression:\\l  {final}\\l"

@@ -560,12 +560,7 @@ class SimpleBeta(CustomFactor, StandardOutputs):
         return self.inputs[1].asset
 
     def __repr__(self):
-        return "{}({}, length={}, allowed_missing={})".format(
-            type(self).__name__,
-            self.target,
-            self.window_length,
-            self.params['allowed_missing_count'],
-        )
+        return f"{type(self).__name__}({self.target}, length={self.window_length}, allowed_missing={self.params['allowed_missing_count']})"
 
 
 def vectorized_beta(dependents, independent, allowed_missing, out=None):

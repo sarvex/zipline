@@ -281,13 +281,13 @@ class ContinuousFuturesTestCase(zf.WithCreateBarData,
                     # Add some volume before a roll, since a contract may be
                     # entered earlier than when it is the primary.
                     df.volume.values[:loc + 1] = 10
-            if i == 15:  # No volume for MAH16
+            if i == 15:
                 df.volume.values[:] = 0
-            if i == 17:
+            elif i == 17:
                 end_loc = dts.searchsorted('2016-02-16 23:00:00+00:00')
                 df.volume.values[:end_loc] = 10
                 df.volume.values[end_loc:] = 0
-            if i == 18:
+            elif i == 18:
                 cross_loc_1 = dts.searchsorted('2016-02-09 23:01:00+00:00')
                 cross_loc_2 = dts.searchsorted('2016-02-11 23:01:00+00:00')
                 cross_loc_3 = dts.searchsorted('2016-02-15 23:01:00+00:00')
@@ -297,7 +297,7 @@ class ContinuousFuturesTestCase(zf.WithCreateBarData,
                 df.volume.values[cross_loc_2:cross_loc_3] = 5
                 df.volume.values[cross_loc_3:end_loc] = 15
                 df.volume.values[end_loc:] = 0
-            if i == 19:
+            elif i == 19:
                 early_cross_1 = dts.searchsorted('2016-03-01 23:01:00+00:00')
                 early_cross_2 = dts.searchsorted('2016-03-03 23:01:00+00:00')
                 end_loc = dts.searchsorted('2016-04-19 23:01:00+00:00')
@@ -1627,14 +1627,14 @@ ACD -> 2017-05-19        0        0        0        0     3000 `---1000--> 2000
 class OrderedContractsTestCase(zf.WithAssetFinder, zf.ZiplineTestCase):
 
     @classmethod
-    def make_root_symbols_info(self):
+    def make_root_symbols_info(cls):
         return pd.DataFrame({
             'root_symbol': ['FO', 'BA', 'BZ'],
             'root_symbol_id': [1, 2, 3],
             'exchange': ['CMES', 'CMES', 'CMES']})
 
     @classmethod
-    def make_futures_info(self):
+    def make_futures_info(cls):
         fo_frame = DataFrame({
             'root_symbol': ['FO'] * 4,
             'asset_name': ['Foo'] * 4,
@@ -1793,9 +1793,11 @@ class OrderedContractsTestCase(zf.WithAssetFinder, zf.ZiplineTestCase):
         contract_sids = range(5, 8)
         contracts = deque(self.asset_finder.retrieve_all(contract_sids))
 
-        oc = OrderedContracts('BA', contracts,
-                              chain_predicate=partial(delivery_predicate,
-                                                      set(['F', 'H'])))
+        oc = OrderedContracts(
+            'BA',
+            contracts,
+            chain_predicate=partial(delivery_predicate, {'F', 'H'}),
+        )
 
         # Test sid 1 as days increment, as the sessions march forward
         # a contract should be added per day, until all defined contracts

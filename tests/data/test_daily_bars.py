@@ -469,18 +469,12 @@ class _DailyBarsTestCase(WithEquityDailyBarData,
                 assert_equal(
                     reader.get_value(asset, date, CLOSE),
                     nan,
-                    msg=(
-                        "Expected a hole for sid={}; date={}, but got a"
-                        " non-nan value for close."
-                    ).format(asset, date.date())
+                    msg=f"Expected a hole for sid={asset}; date={date.date()}, but got a non-nan value for close.",
                 )
                 assert_equal(
                     reader.get_value(asset, date, VOLUME),
                     0.0,
-                    msg=(
-                        "Expected a hole for sid={}; date={}, but got a"
-                        " non-zero value for volume."
-                    ).format(asset, date.date())
+                    msg=f"Expected a hole for sid={asset}; date={date.date()}, but got a non-zero value for volume.",
                 )
 
     def test_get_last_traded_dt(self):
@@ -731,9 +725,7 @@ class _HDF5DailyBarTestCase(WithHDF5EquityMultiCountryDailyBarReader,
             assert_equal(
                 self.single_country_reader.asset_end_dates[ix],
                 self.asset_end(sid).asm8,
-                msg=(
-                    'asset_end_dates value for sid={} differs from expected'
-                ).format(sid)
+                msg=f'asset_end_dates value for sid={sid} differs from expected',
             )
 
     def test_asset_start_dates(self):
@@ -743,9 +735,7 @@ class _HDF5DailyBarTestCase(WithHDF5EquityMultiCountryDailyBarReader,
             assert_equal(
                 self.single_country_reader.asset_start_dates[ix],
                 self.asset_start(sid).asm8,
-                msg=(
-                    'asset_start_dates value for sid={} differs from expected'
-                ).format(sid)
+                msg=f'asset_start_dates value for sid={sid} differs from expected',
             )
 
     def test_invalid_date(self):

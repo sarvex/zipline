@@ -21,15 +21,17 @@ def compute_date_range_chunks(sessions, start_date, end_date, chunksize):
         A sequence of start and end dates to run the pipeline for.
     """
     if start_date not in sessions:
-        raise KeyError("Start date %s is not found in calendar." %
-                       (start_date.strftime("%Y-%m-%d"),))
+        raise KeyError(
+            f'Start date {start_date.strftime("%Y-%m-%d")} is not found in calendar.'
+        )
     if end_date not in sessions:
-        raise KeyError("End date %s is not found in calendar." %
-                       (end_date.strftime("%Y-%m-%d"),))
+        raise KeyError(
+            f'End date {end_date.strftime("%Y-%m-%d")} is not found in calendar.'
+        )
     if end_date < start_date:
-        raise ValueError("End date %s cannot precede start date %s." %
-                         (end_date.strftime("%Y-%m-%d"),
-                          start_date.strftime("%Y-%m-%d")))
+        raise ValueError(
+            f'End date {end_date.strftime("%Y-%m-%d")} cannot precede start date {start_date.strftime("%Y-%m-%d")}.'
+        )
 
     if chunksize is None:
         return [(start_date, end_date)]

@@ -45,8 +45,7 @@ def validate_column_specs(events, next_value_columns, previous_value_columns):
     required = required_event_fields(next_value_columns,
                                      previous_value_columns)
     received = set(events.columns)
-    missing = required - received
-    if missing:
+    if missing := required - received:
         raise ValueError(
             "EventsLoader missing required columns {missing}.\n"
             "Got Columns: {received}\n"

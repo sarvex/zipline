@@ -85,16 +85,18 @@ class DataPortalTestBase(WithDataPortal,
         trading_calendar = cls.trading_calendars[Equity]
         # No data on first day.
         dts = trading_calendar.minutes_for_session(cls.trading_days[0])
-        dfs = []
-        dfs.append(pd.DataFrame(
-            {
-                'open': full(len(dts), nan),
-                'high': full(len(dts), nan),
-                'low': full(len(dts), nan),
-                'close': full(len(dts), nan),
-                'volume': full(len(dts), 0),
-            },
-            index=dts))
+        dfs = [
+            pd.DataFrame(
+                {
+                    'open': full(len(dts), nan),
+                    'high': full(len(dts), nan),
+                    'low': full(len(dts), nan),
+                    'close': full(len(dts), nan),
+                    'volume': full(len(dts), 0),
+                },
+                index=dts,
+            )
+        ]
         dts = trading_calendar.minutes_for_session(cls.trading_days[1])
         dfs.append(pd.DataFrame(
             {
@@ -151,16 +153,18 @@ class DataPortalTestBase(WithDataPortal,
         # dates as equities, so that cross-wiring of results do not create a
         # false positive.
         dts = trading_calendar.minutes_for_session(trading_sessions[1])
-        dfs = []
-        dfs.append(pd.DataFrame(
-            {
-                'open': full(len(dts), nan),
-                'high': full(len(dts), nan),
-                'low': full(len(dts), nan),
-                'close': full(len(dts), nan),
-                'volume': full(len(dts), 0),
-            },
-            index=dts))
+        dfs = [
+            pd.DataFrame(
+                {
+                    'open': full(len(dts), nan),
+                    'high': full(len(dts), nan),
+                    'low': full(len(dts), nan),
+                    'close': full(len(dts), nan),
+                    'volume': full(len(dts), 0),
+                },
+                index=dts,
+            )
+        ]
         dts = trading_calendar.minutes_for_session(trading_sessions[2])
         dfs.append(pd.DataFrame(
             {
@@ -431,9 +435,9 @@ class DataPortalTestBase(WithDataPortal,
                 dt,
                 perspective_dt,
             )[0]
-            assert_almost_equal(val, expected,
-                                err_msg="at dt={} perspective={}"
-                                .format(dt, perspective_dt))
+            assert_almost_equal(
+                val, expected, err_msg=f"at dt={dt} perspective={perspective_dt}"
+            )
 
     def test_bar_count_for_simple_transforms(self):
         # July 2015

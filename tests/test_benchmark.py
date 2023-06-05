@@ -154,9 +154,8 @@ class TestBenchmark(WithDataPortal, WithSimParams, WithTradingCalendars,
             )
 
         self.assertEqual(
-            'Equity(3 [C]) does not exist on %s. It started trading on %s.' %
-            (self.sim_params.sessions[1], benchmark_start),
-            exc.exception.message
+            f'Equity(3 [C]) does not exist on {self.sim_params.sessions[1]}. It started trading on {benchmark_start}.',
+            exc.exception.message,
         )
 
         with self.assertRaises(BenchmarkAssetNotAvailableTooLate) as exc2:
@@ -168,9 +167,8 @@ class TestBenchmark(WithDataPortal, WithSimParams, WithTradingCalendars,
             )
 
         self.assertEqual(
-            'Equity(3 [C]) does not exist on %s. It stopped trading on %s.' %
-            (self.sim_params.sessions[-1], benchmark_end),
-            exc2.exception.message
+            f'Equity(3 [C]) does not exist on {self.sim_params.sessions[-1]}. It stopped trading on {benchmark_end}.',
+            exc2.exception.message,
         )
 
     def test_asset_IPOed_same_day(self):

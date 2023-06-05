@@ -163,9 +163,7 @@ class HooksTestCase(WithSeededRandomPipelineEngine, ZiplineTestCase):
                     self.assertNotIn(computed_term, computes)
                     computes.add(computed_term)
                 else:
-                    raise ValueError(
-                        "Unexpected method: {}".format(enter.method_name)
-                    )
+                    raise ValueError(f"Unexpected method: {enter.method_name}")
 
             self.assertEqual(loads, expected_loads)
             self.assertEqual(computes, expected_computes)
@@ -393,9 +391,7 @@ class ProgressHooksTestCase(WithSeededRandomPipelineEngine, ZiplineTestCase):
                 for term in update.current_work:
                     self.assertIsInstance(term, ComputableTerm)
             else:
-                raise AssertionError(
-                    "Unexpected state: {}".format(update.state),
-                )
+                raise AssertionError(f"Unexpected state: {update.state}")
 
         # Break up the remaining updates by chunk.
         all_chunks = []
@@ -504,6 +500,7 @@ class TermReprTestCase(ZiplineTestCase):
         )
 
     def test_htmlsafe_repr_escapes_html_when_it_handles_errors(self):
+
         class MyFactor(CustomFactor):
             inputs = [TestingDataSet.float_col]
             window_length = 3
@@ -514,10 +511,7 @@ class TermReprTestCase(ZiplineTestCase):
         MyFactor.__name__ = '<b>foo</b>'
         converted = MyFactor.__name__.replace('<', '&lt;').replace('>', '&gt;')
 
-        self.assertEqual(
-            repr_htmlsafe(MyFactor()),
-            '(Error Displaying {})'.format(converted),
-        )
+        self.assertEqual(repr_htmlsafe(MyFactor()), f'(Error Displaying {converted})')
 
 
 def two_at_a_time(it):

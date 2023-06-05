@@ -76,10 +76,7 @@ def round_if_near_integer(a, epsilon=1e-4):
     Round a to the nearest integer if that integer is within an epsilon
     of a.
     """
-    if abs(a - round(a)) <= epsilon:
-        return round(a)
-    else:
-        return a
+    return round(a) if abs(a - round(a)) <= epsilon else a
 
 
 def number_of_decimal_places(n):

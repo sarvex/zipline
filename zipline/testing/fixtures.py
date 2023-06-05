@@ -88,11 +88,9 @@ zipline_dir = os.path.dirname(zipline.__file__)
 class DebugMROMeta(FinalMeta):
     """Metaclass that helps debug MRO resolution errors.
     """
-    def __new__(mcls, name, bases, clsdict):
+    def __new__(cls, name, bases, clsdict):
         try:
-            return super(DebugMROMeta, mcls).__new__(
-                mcls, name, bases, clsdict
-            )
+            return super(DebugMROMeta, cls).__new__(cls, name, bases, clsdict)
         except TypeError as e:
             if "(MRO)" in str(e):
                 msg = debug_mro_failure(name, bases)
@@ -442,12 +440,11 @@ class WithAssetFinder(WithDefaultDateBounds):
 
         exchanges = cls.make_exchanges_info(equities, futures, root_symbols)
         if exchanges is None:
-            exchange_names = [
+            if exchange_names := [
                 df['exchange']
                 for df in (equities, futures, root_symbols)
                 if df is not None
-            ]
-            if exchange_names:
+            ]:
                 exchanges = pd.DataFrame({
                     'exchange': pd.concat(exchange_names).unique(),
                     'country_code': cls.ASSET_FINDER_COUNTRY_CODE,
@@ -647,15 +644,17 @@ class WithSimParams(WithDefaultDateBounds):
 
     @classmethod
     def make_simparams(cls, **overrides):
-        kwargs = dict(
-            start_session=cls.SIM_PARAMS_START,
-            end_session=cls.SIM_PARAMS_END,
-            capital_base=cls.SIM_PARAMS_CAPITAL_BASE,
-            data_frequency=cls.SIM_PARAMS_DATA_FREQUENCY,
-            emission_rate=cls.SIM_PARAMS_EMISSION_RATE,
-            trading_calendar=cls.trading_calendar,
+        kwargs = (
+            dict(
+                start_session=cls.SIM_PARAMS_START,
+                end_session=cls.SIM_PARAMS_END,
+                capital_base=cls.SIM_PARAMS_CAPITAL_BASE,
+                data_frequency=cls.SIM_PARAMS_DATA_FREQUENCY,
+                emission_rate=cls.SIM_PARAMS_EMISSION_RATE,
+                trading_calendar=cls.trading_calendar,
+            )
+            | overrides
         )
-        kwargs.update(overrides)
         return SimulationParameters(**kwargs)
 
     @classmethod
@@ -1732,7 +1731,7 @@ class WithUSEquityPricingPipelineEngine(WithAdjustmentReader,
             if column in USEquityPricing.columns:
                 return loader
             else:
-                raise AssertionError("No loader registered for %s" % column)
+                raise AssertionError(f"No loader registered for {column}")
 
         cls.pipeline_engine = SimplePipelineEngine(
             get_loader=get_loader,
@@ -2152,11 +2151,10 @@ class WithFXRates(object):
         rates : dict[str, pd.DataFrame]
             Map from quote currency to FX rates for that currency.
         """
-        out = {}
-        for quote in reference.columns:
-            out[quote] = reference.divide(reference[quote], axis=0)
-
-        return out
+        return {
+            quote: reference.divide(reference[quote], axis=0)
+            for quote in reference.columns
+        }
 
     @classmethod
     def make_fx_rates(cls, rate_names, currencies, sessions):

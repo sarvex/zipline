@@ -588,11 +588,13 @@ def expect_bounded(__funcname=_qualified_name, **named):
         if lower is None:
             def should_fail(value):
                 return value > upper
-            predicate_descr = "less than or equal to " + str(upper)
+
+            predicate_descr = f"less than or equal to {str(upper)}"
         elif upper is None:
             def should_fail(value):
                 return value < lower
-            predicate_descr = "greater than or equal to " + str(lower)
+
+            predicate_descr = f"greater than or equal to {str(lower)}"
         else:
             def should_fail(value):
                 return not (lower <= value <= upper)
@@ -667,11 +669,13 @@ def expect_strictly_bounded(__funcname=_qualified_name, **named):
         if lower is None:
             def should_fail(value):
                 return value >= upper
-            predicate_descr = "strictly less than " + str(upper)
+
+            predicate_descr = f"strictly less than {str(upper)}"
         elif upper is None:
             def should_fail(value):
                 return value <= lower
-            predicate_descr = "strictly greater than " + str(lower)
+
+            predicate_descr = f"strictly greater than {str(lower)}"
         else:
             def should_fail(value):
                 return not (lower < value < upper)
@@ -745,10 +749,7 @@ def expect_dimensions(__funcname=_qualified_name, **dimensions):
         def _check(func, argname, argvalue):
             actual_ndim = argvalue.ndim
             if actual_ndim != expected_ndim:
-                if actual_ndim == 0:
-                    actual_repr = 'scalar'
-                else:
-                    actual_repr = "%d-D array" % actual_ndim
+                actual_repr = 'scalar' if actual_ndim == 0 else "%d-D array" % actual_ndim
                 raise ValueError(
                     "{func}() expected a {expected:d}-D array"
                     " for argument {argname!r}, but got a {actual}"
@@ -760,7 +761,9 @@ def expect_dimensions(__funcname=_qualified_name, **dimensions):
                     )
                 )
             return argvalue
+
         return _check
+
     return preprocess(**valmap(_expect_dimension, dimensions))
 
 
@@ -795,9 +798,8 @@ def coerce(from_, to, **to_kwargs):
     '110'
     """
     def preprocessor(func, argname, arg):
-        if isinstance(arg, from_):
-            return to(arg, **to_kwargs)
-        return arg
+        return to(arg, **to_kwargs) if isinstance(arg, from_) else arg
+
     return preprocessor
 
 
@@ -850,26 +852,12 @@ def validate_keys(dict_, expected, funcname):
     expected = set(expected)
     received = set(dict_)
 
-    missing = expected - received
-    if missing:
+    if missing := expected - received:
         raise ValueError(
-            "Missing keys in {}:\n"
-            "Expected Keys: {}\n"
-            "Received Keys: {}".format(
-                funcname,
-                sorted(expected),
-                sorted(received),
-            )
+            f"Missing keys in {funcname}:\nExpected Keys: {sorted(expected)}\nReceived Keys: {sorted(received)}"
         )
 
-    unexpected = received - expected
-    if unexpected:
+    if unexpected := received - expected:
         raise ValueError(
-            "Unexpected keys in {}:\n"
-            "Expected Keys: {}\n"
-            "Received Keys: {}".format(
-                funcname,
-                sorted(expected),
-                sorted(received),
-            )
+            f"Unexpected keys in {funcname}:\nExpected Keys: {sorted(expected)}\nReceived Keys: {sorted(received)}"
         )

@@ -107,10 +107,7 @@ else:
         pass
 
     def consistent_round(val):
-        if (val % 1) >= 0.5:
-            return ceil(val)
-        else:
-            return round(val)
+        return ceil(val) if (val % 1) >= 0.5 else round(val)
 
     update_wrapper = functools.update_wrapper
     wraps = functools.wraps

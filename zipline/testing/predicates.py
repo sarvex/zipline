@@ -90,7 +90,7 @@ class wildcard(object):
         return False
 
     def __repr__(self):
-        return '<%s>' % type(self).__name__
+        return f'<{type(self).__name__}>'
 
 
 class instance_of(object):
@@ -127,12 +127,8 @@ class instance_of(object):
         typenames = tuple(t.__name__ for t in self.types)
         return '%s(%s%s)' % (
             type(self).__name__,
-            (
-                typenames[0]
-                if len(typenames) == 1 else
-                '(%s)' % ', '.join(typenames)
-            ),
-            ', exact=True' if self.exact else ''
+            typenames[0] if len(typenames) == 1 else f"({', '.join(typenames)})",
+            ', exact=True' if self.exact else '',
         )
 
 
@@ -193,9 +189,7 @@ def _fmt_path(path):
     fmtd : str
         The formatted path to put into the error message.
     """
-    if not path:
-        return ''
-    return 'path: _' + ''.join(path)
+    return '' if not path else 'path: _' + ''.join(path)
 
 
 def _fmt_msg(msg):
@@ -211,9 +205,7 @@ def _fmt_msg(msg):
     fmtd : str
         The formatted message to put into the error message.
     """
-    if not msg:
-        return ''
-    return msg + '\n'
+    return '' if not msg else msg + '\n'
 
 
 def _safe_cls_name(cls):
@@ -289,7 +281,7 @@ def _assert_raises_helper(do_check, exc_type, msg):
     except exc_type as e:
         do_check(e)
     else:
-        raise AssertionError('%s%s was not raised' % (_fmt_msg(msg), exc_type))
+        raise AssertionError(f'{_fmt_msg(msg)}{exc_type} was not raised')
 
 
 def assert_raises_regex(exc, pattern, msg=''):
@@ -388,11 +380,7 @@ def assert_equal(result, expected, path=(), msg='', **kwargs):
         Raised when ``result`` is not equal to ``expected``.
     """
     if result != expected:
-        raise make_assert_equal_assertion_error(
-            '%s != %s' % (result, expected),
-            path,
-            msg,
-        )
+        raise make_assert_equal_assertion_error(f'{result} != {expected}', path, msg)
 
 
 @assert_equal.register(float, float)
@@ -465,7 +453,7 @@ def assert_dict_equal(result, expected, path=(), msg='', **kwargs):
         viewkeys(result),
         viewkeys(expected),
         msg,
-        path + ('.%s()' % ('viewkeys' if PY2 else 'keys'),),
+        path + (f".{'viewkeys' if PY2 else 'keys'}()",),
         'key',
     )
 
@@ -752,19 +740,19 @@ def assert_timestamp_and_datetime_equal(result,
 @assert_equal.register(slice, slice)
 def assert_slice_equal(result, expected, path=(), msg=''):
     diff_start = (
-        ('starts are not equal: %s != %s' % (result.start, result.stop))
-        if result.start != expected.start else
-        ''
+        f'starts are not equal: {result.start} != {result.stop}'
+        if result.start != expected.start
+        else ''
     )
     diff_stop = (
-        ('stops are not equal: %s != %s' % (result.stop, result.stop))
-        if result.stop != expected.stop else
-        ''
+        f'stops are not equal: {result.stop} != {result.stop}'
+        if result.stop != expected.stop
+        else ''
     )
     diff_step = (
-        ('steps are not equal: %s != %s' % (result.step, result.stop))
-        if result.step != expected.step else
-        ''
+        f'steps are not equal: {result.step} != {result.stop}'
+        if result.step != expected.step
+        else ''
     )
     diffs = diff_start, diff_stop, diff_step
 
@@ -796,9 +784,9 @@ def assert_asset_equal(result, expected, path=(), msg='', **kwargs):
 
 
 def assert_isidentical(result, expected, msg=''):
-    assert result.isidentical(expected), (
-        '%s%s is not identical to %s' % (_fmt_msg(msg), result, expected)
-    )
+    assert result.isidentical(
+        expected
+    ), f'{_fmt_msg(msg)}{result} is not identical to {expected}'
 
 
 def assert_messages_equal(result, expected, msg=''):

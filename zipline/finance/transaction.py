@@ -74,12 +74,10 @@ def create_transaction(order, dt, price, amount):
     if amount_magnitude < 1:
         raise Exception("Transaction magnitude must be at least 1.")
 
-    transaction = Transaction(
+    return Transaction(
         asset=order.asset,
         amount=int(amount),
         dt=dt,
         price=price,
-        order_id=order.id
+        order_id=order.id,
     )
-
-    return transaction

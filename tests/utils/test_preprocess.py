@@ -121,7 +121,7 @@ class PreprocessTestCase(TestCase):
         def func_with_default_arg_named_a(a=1):
             pass
 
-        message = "Got processors for unknown arguments: %s." % {'a'}
+        message = f"Got processors for unknown arguments: {{'a'}}."
         with self.assertRaises(TypeError) as e:
             @a_processor
             def func_with_no_args():

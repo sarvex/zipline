@@ -204,11 +204,7 @@ def split_delimited_symbol(symbol):
     # Break the list up in to its two components, the company symbol and the
     # share class symbol
     company_symbol = split_list[0]
-    if len(split_list) > 1:
-        share_class_symbol = split_list[1]
-    else:
-        share_class_symbol = ''
-
+    share_class_symbol = split_list[1] if len(split_list) > 1 else ''
     return company_symbol, share_class_symbol
 
 
@@ -764,12 +760,11 @@ class AssetDBWriter(object):
         zipline.assets.asset_finder
         """
         if exchanges is None:
-            exchange_names = [
+            if exchange_names := [
                 df['exchange']
                 for df in (equities, futures, root_symbols)
                 if df is not None
-            ]
-            if exchange_names:
+            ]:
                 exchanges = pd.DataFrame({
                     'exchange': pd.concat(exchange_names).unique(),
                 })
@@ -867,10 +862,10 @@ class AssetDBWriter(object):
             True if any tables are present, otherwise False.
         """
         conn = txn.connect()
-        for table_name in asset_db_table_names:
-            if txn.dialect.has_table(conn, table_name):
-                return True
-        return False
+        return any(
+            txn.dialect.has_table(conn, table_name)
+            for table_name in asset_db_table_names
+        )
 
     def init_db(self, txn=None):
         """Connect to database and create tables.

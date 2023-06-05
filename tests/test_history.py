@@ -242,11 +242,7 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
         )
 
     def verify_regular_dt(self, idx, dt, mode, fields=None, assets=None):
-        if mode == 'daily':
-            freq = '1d'
-        else:
-            freq = '1m'
-
+        freq = '1d' if mode == 'daily' else '1m'
         cal = self.trading_calendar
         equity_cal = self.trading_calendars[Equity]
 
@@ -306,7 +302,7 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
                             # asset2 should have some leading nans
                             np.testing.assert_array_equal(
                                 np.full(missing_count, np.nan),
-                                asset_series[0:missing_count]
+                                asset_series[:missing_count],
                             )
 
                             # asset2 should also have some real values
@@ -327,7 +323,7 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
                             # asset2 should have some zeros (instead of nans)
                             np.testing.assert_array_equal(
                                 np.zeros(missing_count),
-                                asset_series[0:missing_count]
+                                asset_series[:missing_count],
                             )
 
                             # and some real values
@@ -356,12 +352,12 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
                     # be a baseline of 11 (then adjusted for the individual
                     # field), thus the rounding down to the nearest 10.
                     value_for_asset3 = (((idx + 1) // 10) * 10) + \
-                        MINUTE_FIELD_INFO[field] + 1
+                            MINUTE_FIELD_INFO[field] + 1
 
                     if field in OHLC:
                         asset3_answer_key = np.full(10, np.nan)
                         asset3_answer_key[-position_from_end] = \
-                            value_for_asset3
+                                value_for_asset3
                         asset3_answer_key = reindex_to_primary_calendar(
                             asset3_answer_key,
                             field,
@@ -386,7 +382,7 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
                     elif field == 'volume':
                         asset3_answer_key = np.zeros(10)
                         asset3_answer_key[-position_from_end] = \
-                            value_for_asset3 * 100
+                                value_for_asset3 * 100
                         asset3_answer_key = reindex_to_primary_calendar(
                             asset3_answer_key,
                             field,
@@ -472,16 +468,8 @@ class WithHistory(zf.WithCreateBarData, zf.WithDataPortal):
 
 
 def check_internal_consistency(bar_data, assets, fields, bar_count, freq):
-    if isinstance(assets, Asset):
-        asset_list = [assets]
-    else:
-        asset_list = assets
-
-    if isinstance(fields, str):
-        field_list = [fields]
-    else:
-        field_list = fields
-
+    asset_list = [assets] if isinstance(assets, Asset) else assets
+    field_list = [fields] if isinstance(fields, str) else fields
     multi_field_dict = {
         asset: bar_data.history(asset, field_list, bar_count, freq)
         for asset in asset_list
@@ -775,12 +763,12 @@ class MinuteEquityHistoryTestCase(WithHistory,
         # since asset2 and asset3 both started trading on 1/5/2015, let's do
         # some history windows that are completely before that
         minutes = self.trading_calendar.minutes_for_session(
-            self.trading_calendar.previous_session_label(pd.Timestamp(
-                '2015-01-05', tz='UTC'
-            ))
-        )[0:60]
+            self.trading_calendar.previous_session_label(
+                pd.Timestamp('2015-01-05', tz='UTC')
+            )
+        )[:60]
 
-        for idx, minute in enumerate(minutes):
+        for minute in minutes:
             bar_data = self.create_bardata(
                 lambda: minute,
             )
@@ -828,7 +816,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
         # Check the first hour of equities trading.
         minutes = self.trading_calendars[Equity].minutes_for_session(
             pd.Timestamp('2015-01-05', tz='UTC')
-        )[0:60]
+        )[:60]
 
         for idx, minute in enumerate(minutes):
             self.verify_regular_dt(idx, minute, 'minute',
@@ -867,9 +855,9 @@ class MinuteEquityHistoryTestCase(WithHistory,
         # get some history windows that straddle the end
         minutes = self.trading_calendars[Equity].minutes_for_session(
             pd.Timestamp('2015-01-07', tz='UTC')
-        )[0:60]
+        )[:60]
 
-        for idx, minute in enumerate(minutes):
+        for minute in minutes:
             bar_data = self.create_bardata(
                 lambda: minute
             )
@@ -937,10 +925,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
         # Window should start with 14 values and end with 16 NaNs/0s.
         for field in ALL_FIELDS:
             if field == 'volume':
-                np.testing.assert_array_equal(
-                    range(76800, 78101, 100),
-                    window['volume'][0:14]
-                )
+                np.testing.assert_array_equal(range(76800, 78101, 100), window['volume'][:14])
                 np.testing.assert_array_equal(
                     np.zeros(16),
                     window['volume'][-16:]
@@ -948,7 +933,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
             else:
                 np.testing.assert_array_equal(
                     np.array(range(768, 782)) + MINUTE_FIELD_INFO[field],
-                    window[field][0:14]
+                    window[field][:14],
                 )
                 np.testing.assert_array_equal(
                     np.full(16, np.nan),
@@ -1048,8 +1033,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
 
             # first five minutes should be 4385-4390, but eigthed
             np.testing.assert_array_equal(
-                [1048.125, 1048.25, 1048.375, 1048.5, 1048.625],
-                window3[0:5]
+                [1048.125, 1048.25, 1048.375, 1048.5, 1048.625], window3[:5]
             )
 
             # next 390 minutes (the 2015-01-06 session) should be
@@ -1114,8 +1098,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
         # first dividend is 2%, so the first five values should be 2% lower
         # than before
         np.testing.assert_array_almost_equal(
-            np.array(range(387, 392), dtype='float64') * 0.98,
-            window2[0:5]
+            np.array(range(387, 392), dtype='float64') * 0.98, window2[:5]
         )
 
         # second half of window is unadjusted
@@ -1142,7 +1125,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
         # first five minute from 1/7 should be hit by 0.9408 (= 0.98 * 0.96)
         np.testing.assert_array_almost_equal(
             np.around(np.array(range(387, 392), dtype='float64') * 0.9408, 3),
-            window3[0:5]
+            window3[:5],
         )
 
         # next 390 minutes (the 2015-01-06 session) should be hit by 0.96
@@ -1431,18 +1414,18 @@ class MinuteEquityHistoryTestCase(WithHistory,
 
                 self.assertEqual(len(window), 3)
 
-                if field == 'open':
-                    self.assertEqual(window[0], 3)
-                    self.assertEqual(window[1], 393)
+                if field == 'close':
+                    self.assertEqual(window[0], 391)
+                    self.assertEqual(window[1], 781)
                 elif field == 'high':
                     self.assertEqual(window[0], 393)
                     self.assertEqual(window[1], 783)
                 elif field == 'low':
                     self.assertEqual(window[0], 1)
                     self.assertEqual(window[1], 391)
-                elif field == 'close':
-                    self.assertEqual(window[0], 391)
-                    self.assertEqual(window[1], 781)
+                elif field == 'open':
+                    self.assertEqual(window[0], 3)
+                    self.assertEqual(window[1], 393)
                 elif field == 'volume':
                     self.assertEqual(window[0], 7663500)
                     self.assertEqual(window[1], 22873500)
@@ -1452,10 +1435,10 @@ class MinuteEquityHistoryTestCase(WithHistory,
                 if minute < equity_open:
                     # If before the equity calendar open, we don't yet
                     # have data (but price is forward-filled).
-                    if field == 'volume':
-                        last_val = 0
-                    elif field == 'price':
+                    if field == 'price':
                         last_val = window[1]
+                    elif field == 'volume':
+                        last_val = 0
                     else:
                         last_val = nan
                 elif field == 'open':
@@ -1468,7 +1451,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
                     # since we increase monotonically, the low is the first
                     # value of the day
                     last_val = 781
-                elif field == 'close' or field == 'price':
+                elif field in ['close', 'price']:
                     last_val = 782 + idx
                 elif field == 'volume':
                     # for volume, we sum up all the minutely volumes so far
@@ -1533,17 +1516,14 @@ class MinuteEquityHistoryTestCase(WithHistory,
             if minute < equity_open:
                 # If before the equity calendar open, we don't yet
                 # have data (but price is forward-filled).
-                if field == 'volume':
-                    last_val = 0
-                elif field == 'price':
+                if field == 'price':
                     last_val = window[1]
+                elif field == 'volume':
+                    last_val = 0
                 else:
                     last_val = nan
             elif field == 'open':
-                if idx == 0:
-                    last_val = np.nan
-                else:
-                    last_val = 1174.0
+                last_val = np.nan if idx == 0 else 1174.0
             elif field == 'high':
                 # since we increase monotonically, it's just the last
                 # value
@@ -1556,10 +1536,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
             elif field == 'low':
                 # since we increase monotonically, the low is the first
                 # value of the day
-                if idx == 0:
-                    last_val = np.nan
-                else:
-                    last_val = 1172.0
+                last_val = np.nan if idx == 0 else 1172.0
             elif field == 'close':
                 if idx == 0:
                     last_val = np.nan
@@ -1590,7 +1567,7 @@ class MinuteEquityHistoryTestCase(WithHistory,
                                            err_msg='field={0} minute={1}'.
                                            format(field, minute))
 
-    @parameterized.expand([(("bar_count%s" % x), x) for x in [1, 2, 3]])
+    @parameterized.expand([(f"bar_count{x}", x) for x in [1, 2, 3]])
     def test_daily_history_minute_gaps_price_ffill(self, test_name, bar_count):
         # Make sure we use the previous day's value when there's been no volume
         # yet today.
@@ -1657,14 +1634,9 @@ class MinuteEquityHistoryTestCase(WithHistory,
                 self.assertEqual(
                     len(window),
                     bar_count,
-                    "Unexpected window length at {}. Expected {}, but was {}."
-                    .format(minute, bar_count, len(window))
+                    f"Unexpected window length at {minute}. Expected {bar_count}, but was {len(window)}.",
                 )
-                np.testing.assert_allclose(
-                    window[-1],
-                    expected,
-                    err_msg="at minute {}".format(minute),
-                )
+                np.testing.assert_allclose(window[-1], expected, err_msg=f"at minute {minute}")
 
 
 class NoPrefetchMinuteEquityHistoryTestCase(MinuteEquityHistoryTestCase):
@@ -1739,7 +1711,7 @@ class DailyEquityHistoryTestCase(WithHistory, zf.ZiplineTestCase):
             pd.Timestamp('2014-12-18', tz='UTC'),
         )
 
-        for idx, day in enumerate(days):
+        for day in days:
             bar_data = self.create_bardata(
                 simulation_dt_func=lambda: day,
             )
@@ -1849,14 +1821,12 @@ class DailyEquityHistoryTestCase(WithHistory, zf.ZiplineTestCase):
                     elif field == 'volume':
                         self.assertEqual(300, asset_series.iloc[0])
                         self.assertEqual(0, asset_series.iloc[1])
-                else:
-                    # both NaNs
-                    if field in OHLCP:
-                        self.assertTrue(np.isnan(asset_series.iloc[0]))
-                        self.assertTrue(np.isnan(asset_series.iloc[1]))
-                    elif field == 'volume':
-                        self.assertEqual(0, asset_series.iloc[0])
-                        self.assertEqual(0, asset_series.iloc[1])
+                elif field in OHLCP:
+                    self.assertTrue(np.isnan(asset_series.iloc[0]))
+                    self.assertTrue(np.isnan(asset_series.iloc[1]))
+                elif field == 'volume':
+                    self.assertEqual(0, asset_series.iloc[0])
+                    self.assertEqual(0, asset_series.iloc[1])
 
     def test_daily_splits_and_mergers(self):
         # self.SPLIT_ASSET and self.MERGER_ASSET had splits/mergers

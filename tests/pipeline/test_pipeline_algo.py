@@ -210,17 +210,11 @@ class ClosesAndVolumes(WithMakeAlgo, ZiplineTestCase):
         )
 
     def expected_close(self, date, asset):
-        if date < self.split_date:
-            lookup = self.closes
-        else:
-            lookup = self.adj_closes
+        lookup = self.closes if date < self.split_date else self.adj_closes
         return lookup.loc[date, asset]
 
     def expected_volume(self, date, asset):
-        if date < self.split_date:
-            lookup = self.volumes
-        else:
-            lookup = self.adj_volumes
+        lookup = self.volumes if date < self.split_date else self.adj_volumes
         return lookup.loc[date, asset]
 
     def exists(self, date, asset):

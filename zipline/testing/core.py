@@ -86,10 +86,8 @@ def str_to_seconds(s):
 def drain_zipline(test, zipline):
     output = []
     transaction_count = 0
-    msg_counter = 0
     # start the simulation
     for update in zipline:
-        msg_counter += 1
         output.append(update)
         if 'daily_perf' in update:
             transaction_count += \
@@ -115,8 +113,7 @@ def check_algo_results(test,
     if expected_order_count is not None:
         # de-dup orders on id, because orders are put back into perf packets
         # whenever they a txn is filled
-        orders = set([order['id'] for order in
-                      flatten_list(results["orders"])])
+        orders = {order['id'] for order in flatten_list(results["orders"])}
 
         test.assertEqual(expected_order_count, len(orders))
 
@@ -171,7 +168,7 @@ def assert_single_position(test, zipline):
     test.assertEqual(
         closing_positions[0]['sid'],
         sid,
-        "Portfolio should have one position in " + str(sid)
+        f"Portfolio should have one position in {str(sid)}",
     )
 
     return output, transaction_count
@@ -355,7 +352,7 @@ def check_allclose(actual,
     np.assert_allclose
     """
     if type(actual) != type(desired):
-        raise AssertionError("%s != %s" % (type(actual), type(desired)))
+        raise AssertionError(f"{type(actual)} != {type(desired)}")
     return assert_allclose(
         actual,
         desired,
@@ -708,16 +705,10 @@ class FakeDataPortal(DataPortal):
                                              first_trading_day)
 
     def get_spot_value(self, asset, field, dt, data_frequency):
-        if field == "volume":
-            return 100
-        else:
-            return 1.0
+        return 100 if field == "volume" else 1.0
 
     def get_scalar_asset_spot_value(self, asset, field, dt, data_frequency):
-        if field == "volume":
-            return 100
-        else:
-            return 1.0
+        return 100 if field == "volume" else 1.0
 
     def get_history_window(self, assets, end_dt, bar_count, frequency, field,
                            data_frequency, ffill=True):
@@ -1271,9 +1262,7 @@ def make_alternating_boolean_array(shape, first_value=True):
            [ True, False,  True]], dtype=bool)
     """
     if len(shape) != 2:
-        raise ValueError(
-            'Shape must be 2-dimensional. Given shape was {}'.format(shape)
-        )
+        raise ValueError(f'Shape must be 2-dimensional. Given shape was {shape}')
     alternating = np.empty(shape, dtype=np.bool)
     for row in alternating:
         row[::2] = first_value
@@ -1304,9 +1293,7 @@ def make_cascading_boolean_array(shape, first_value=True):
            [ True,  True, False, False]], dtype=bool)
     """
     if len(shape) != 2:
-        raise ValueError(
-            'Shape must be 2-dimensional. Given shape was {}'.format(shape)
-        )
+        raise ValueError(f'Shape must be 2-dimensional. Given shape was {shape}')
     cascading = np.full(shape, not(first_value), dtype=np.bool)
     ending_col = shape[1] - 1
     for row in cascading:

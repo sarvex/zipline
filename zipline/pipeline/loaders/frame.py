@@ -184,4 +184,4 @@ class DataFrameLoader(implements(PipelineLoader)):
         """Make sure a passed column is our column.
         """
         if column != self.column and column.unspecialize() != self.column:
-            raise ValueError("Can't load unknown column %s" % column)
+            raise ValueError(f"Can't load unknown column {column}")

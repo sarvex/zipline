@@ -488,9 +488,7 @@ class StatisticalBuiltInsTestCase(zf.WithAssetFinder,
             allowed_missing_percentage=0.5,
         )
         result = repr(beta)
-        expected = "SimpleBeta({}, length=50, allowed_missing=25)".format(
-            self.my_asset,
-        )
+        expected = f"SimpleBeta({self.my_asset}, length=50, allowed_missing=25)"
         self.assertEqual(result, expected)
 
     def test_simple_beta_graph_repr(self):
@@ -1112,9 +1110,9 @@ class VectorizedCorrelationTestCase(zf.ZiplineTestCase):
                              [0, 0, 0, 1, 1],
                              [0, 0, 0, 0, 1]], dtype=bool)
 
-        if nans == 'dependent' or nans == 'both':
+        if nans in ['dependent', 'both']:
             dependents[10 + nan_offset:15 + nan_offset][nan_grid] = np.nan
-        if nans == 'independent' or nans == 'both':
+        if nans in ['independent', 'both']:
             independents[10 + nan_offset:15 + nan_offset][nan_grid] = np.nan
 
         expected = self.naive_columnwise_pearson(dependents, independents)

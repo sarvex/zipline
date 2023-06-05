@@ -287,18 +287,18 @@ class BlotterTestCase(WithCreateBarData,
         self.assertEqual(cancelled_order.id, held_order.id)
         self.assertEqual(cancelled_order.status, ORDER_STATUS.CANCELLED)
 
+        order_size = 100
         for data in ([100, self.sim_params.sessions[0]],
                      [400, self.sim_params.sessions[1]]):
             # Verify that incoming fills will change the order status.
             trade_amt = data[0]
             dt = data[1]
 
-            order_size = 100
             expected_filled = int(trade_amt *
                                   DEFAULT_EQUITY_VOLUME_SLIPPAGE_BAR_LIMIT)
             expected_open = order_size - expected_filled
             expected_status = ORDER_STATUS.OPEN if expected_open else \
-                ORDER_STATUS.FILLED
+                    ORDER_STATUS.FILLED
 
             blotter = SimulationBlotter(equity_slippage=VolumeShareSlippage())
             open_id = blotter.order(self.asset_24, order_size, MarketOrder())
@@ -358,9 +358,7 @@ class BlotterTestCase(WithCreateBarData,
             ]
 
             order_batch_ids = blotter1.batch_order(order_arg_lists)
-            order_ids = []
-            for order_args in order_arg_lists:
-                order_ids.append(blotter2.order(*order_args))
+            order_ids = [blotter2.order(*order_args) for order_args in order_arg_lists]
             self.assertEqual(len(order_batch_ids), len(order_ids))
 
             self.assertEqual(len(blotter1.open_orders),

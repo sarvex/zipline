@@ -33,8 +33,8 @@ def main():
         )
         del data['Adj Close']
 
-        dest = join(here, symbol + '.csv')
-        print("Writing %s -> %s" % (symbol, dest))
+        dest = join(here, f'{symbol}.csv')
+        print(f"Writing {symbol} -> {dest}")
         data.to_csv(dest, index_label='day')
 
 

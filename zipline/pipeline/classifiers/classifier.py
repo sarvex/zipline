@@ -120,8 +120,8 @@ class Classifier(RestrictedDTypeMixin, ComputableTerm):
             # Numexpr doesn't know how to use LabelArrays.
             return ArrayPredicate(term=self, op=operator.ne, opargs=(other,))
 
-    def bad_compare(opname, other):
-        raise TypeError('cannot compare classifiers with %s' % opname)
+    def bad_compare(self, other):
+        raise TypeError(f'cannot compare classifiers with {self}')
 
     __gt__ = partial(bad_compare, '>')
     __ge__ = partial(bad_compare, '>=')
@@ -318,13 +318,13 @@ class Classifier(RestrictedDTypeMixin, ComputableTerm):
                         choices=choices,
                     )
                 )
-        assert False, "Unknown dtype in Classifier.element_of %s." % self.dtype
+        assert False, f"Unknown dtype in Classifier.element_of {self.dtype}."
 
     def postprocess(self, data):
         if self.dtype == int64_dtype:
             return data
         if not isinstance(data, LabelArray):
-            raise AssertionError("Expected a LabelArray, got %s." % type(data))
+            raise AssertionError(f"Expected a LabelArray, got {type(data)}.")
         return data.as_categorical()
 
     def to_workspace_value(self, result, assets):
@@ -374,9 +374,7 @@ class Classifier(RestrictedDTypeMixin, ComputableTerm):
             group_labels = output_array.as_int_array()
             null_label = output_array.missing_value_code
         else:
-            raise AssertionError(
-                "Unexpected Classifier dtype: %s." % self.dtype
-            )
+            raise AssertionError(f"Unexpected Classifier dtype: {self.dtype}.")
         return group_labels, null_label
 
     def peer_count(self, mask=NotSpecified):
