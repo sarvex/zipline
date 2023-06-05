@@ -43,12 +43,12 @@ def main():
         end_date=end_date,
         symbols=symbols
     )
-    print('Fetching equity data from %s' % url)
+    print(f'Fetching equity data from {url}')
     response = requests.get(url)
     response.raise_for_status()
 
     archive_path = zipfile_path('QUANDL_ARCHIVE.zip')
-    print('Writing compressed table to %s' % archive_path)
+    print(f'Writing compressed table to {archive_path}')
     with ZipFile(archive_path, 'w') as zip_file:
         zip_file.writestr(
             'QUANDL_SAMPLE_TABLE.csv',
@@ -70,7 +70,7 @@ def main():
     )
     metadata = ','.join(cols) + ','.join(row)
     path = zipfile_path('metadata.csv.gz')
-    print('Writing compressed metadata to %s' % path)
+    print(f'Writing compressed metadata to {path}')
     write_compressed(path, metadata)
 
 

@@ -288,9 +288,9 @@ def unary_operator(op):
     # Only negate is currently supported.
     valid_ops = {'-'}
     if op not in valid_ops:
-        raise ValueError("Invalid unary operator %s." % op)
+        raise ValueError(f"Invalid unary operator {op}.")
 
-    @with_doc("Unary Operator: '%s'" % op)
+    @with_doc(f"Unary Operator: '{op}'")
     @with_name(unary_op_name(op))
     def unary_operator(self):
         if self.dtype != float64_dtype:
@@ -320,6 +320,7 @@ def unary_operator(op):
                 (self,),
                 dtype=float64_dtype,
             )
+
     return unary_operator
 
 
@@ -329,7 +330,7 @@ def function_application(func):
     subclasses.
     """
     if func not in NUMEXPR_MATH_FUNCS:
-        raise ValueError("Unsupported mathematical function '%s'" % func)
+        raise ValueError(f"Unsupported mathematical function '{func}'")
 
     docstring = dedent(
         """\
@@ -356,6 +357,7 @@ def function_application(func):
                 (self,),
                 dtype=float64_dtype,
             )
+
     return mathfunc
 
 
@@ -1413,11 +1415,7 @@ class GroupedRowTransform(Factor):
                 mask,
                 **kwargs):
 
-        if mask is NotSpecified:
-            mask = factor.mask
-        else:
-            mask = mask & factor.mask
-
+        mask = factor.mask if mask is NotSpecified else mask & factor.mask
         if groupby is NotSpecified:
             groupby = Everything(mask=mask)
 
@@ -1549,7 +1547,7 @@ class Rank(SingleInputMixin, Factor):
             # Don't include mask in repr if it's the default.
             mask_info = ""
         else:
-            mask_info = ", mask={}".format(self.mask.recursive_repr())
+            mask_info = f", mask={self.mask.recursive_repr()}"
 
         return "{type}({input_}, method='{method}'{mask_info})".format(
             type=type(self).__name__,
@@ -1789,7 +1787,7 @@ class RecarrayField(SingleInputMixin, Factor):
         return windows[0][self._attribute]
 
     def graph_repr(self):
-        return "{}.{}".format(self.inputs[0].recursive_repr(), self._attribute)
+        return f"{self.inputs[0].recursive_repr()}.{self._attribute}"
 
 
 class Latest(LatestMixin, CustomFactor):
@@ -1816,10 +1814,7 @@ class DailySummary(SingleInputMixin, Factor):
         # TODO: We should be able to support datetime64 as well, but that
         # requires extra care for handling NaT.
         if dtype != float64_dtype:
-            raise AssertionError(
-                "DailySummary only supports float64 dtype, got {}"
-                .format(dtype),
-            )
+            raise AssertionError(f"DailySummary only supports float64 dtype, got {dtype}")
 
         return super(DailySummary, cls).__new__(
             cls,
@@ -1842,10 +1837,7 @@ class DailySummary(SingleInputMixin, Factor):
         return as_column(func(data, self.inputs[0].missing_value))
 
     def __repr__(self):
-        return "{}.{}()".format(
-            self.inputs[0].recursive_repr(),
-            self.params['func'].__name__,
-        )
+        return f"{self.inputs[0].recursive_repr()}.{self.params['func'].__name__}()"
 
     graph_repr = recursive_repr = __repr__
 

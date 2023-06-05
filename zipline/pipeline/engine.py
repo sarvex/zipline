@@ -282,10 +282,7 @@ class SimplePipelineEngine(PipelineEngine):
         )
         self._default_domain = default_domain
 
-        if default_hooks is None:
-            self._default_hooks = []
-        else:
-            self._default_hooks = list(default_hooks)
+        self._default_hooks = [] if default_hooks is None else list(default_hooks)
 
     def run_chunked_pipeline(self,
                              pipeline,
@@ -481,14 +478,12 @@ class SimplePipelineEngine(PipelineEngine):
 
         if start_date not in sessions:
             raise ValueError(
-                "Pipeline start date ({}) is not a trading session for "
-                "domain {}.".format(start_date, domain)
+                f"Pipeline start date ({start_date}) is not a trading session for domain {domain}."
             )
 
         elif end_date not in sessions:
             raise ValueError(
-                "Pipeline end date {} is not a trading session for "
-                "domain {}.".format(end_date, domain)
+                f"Pipeline end date {end_date} is not a trading session for domain {domain}."
             )
 
         start_idx, end_idx = sessions.slice_locs(start_date, end_date)
@@ -552,10 +547,8 @@ class SimplePipelineEngine(PipelineEngine):
         # inputs.
         specialized = [maybe_specialize(t, domain) for t in term.inputs]
 
-        if term.windowed:
-            # If term is windowed, then all input data should be instances of
-            # AdjustedArray.
-            for input_ in specialized:
+        for input_ in specialized:
+            if term.windowed:
                 adjusted_array = ensure_adjusted_array(
                     workspace[input_], input_.missing_value,
                 )
@@ -571,10 +564,7 @@ class SimplePipelineEngine(PipelineEngine):
                         copy=refcounts[input_] > 1,
                     )
                 )
-        else:
-            # If term is not windowed, input_data may be an AdjustedArray or
-            # np.ndarray. Coerce the former to the latter.
-            for input_ in specialized:
+            else:
                 input_data = ensure_ndarray(workspace[input_])
                 offset = offsets[term, input_]
                 input_data = input_data[offset:]
@@ -780,15 +770,9 @@ class SimplePipelineEngine(PipelineEngine):
                 index=MultiIndex.from_arrays([empty_dates, empty_assets]),
             )
 
-        final_columns = {}
-        for name in data:
-            # Each term that computed an output has its postprocess method
-            # called on the filtered result.
-            #
-            # As of Mon May 2 15:38:47 2016, we only use this to convert
-            # LabelArrays into categoricals.
-            final_columns[name] = terms[name].postprocess(data[name][mask])
-
+        final_columns = {
+            name: terms[name].postprocess(data[name][mask]) for name in data
+        }
         resolved_assets = array(self._finder.retrieve_all(assets))
         index = _pipeline_output_index(dates, resolved_assets, mask)
 
@@ -862,16 +846,12 @@ class SimplePipelineEngine(PipelineEngine):
                 # this in place as a somewhat sharp edge.
                 if isinstance(term, LoadableTerm):
                     raise ValueError(
-                        "Loadable workspace terms must be specialized to a "
-                        "domain, but got generic term {}".format(term)
+                        f"Loadable workspace terms must be specialized to a domain, but got generic term {term}"
                     )
 
             elif term.domain != graph.domain:
                 raise ValueError(
-                    "Initial workspace term {} has domain {}. "
-                    "Does not match pipeline domain {}".format(
-                        term, term.domain, graph.domain,
-                    )
+                    f"Initial workspace term {term} has domain {term.domain}. Does not match pipeline domain {graph.domain}"
                 )
 
     def resolve_domain(self, pipeline):
@@ -900,12 +880,10 @@ class SimplePipelineEngine(PipelineEngine):
     def _ensure_can_load(self, loader, terms):
         """Ensure that ``loader`` can load ``terms``.
         """
-        if not loader.currency_aware:
-            bad = [t for t in terms if t.currency_conversion is not None]
-            if bad:
+        if bad := [t for t in terms if t.currency_conversion is not None]:
+            if not loader.currency_aware:
                 raise ValueError(
-                    "Requested currency conversion is not supported for the "
-                    "following terms:\n{}".format(bulleted_list(bad))
+                    f"Requested currency conversion is not supported for the following terms:\n{bulleted_list(bad)}"
                 )
 
 

@@ -249,11 +249,7 @@ class TestRisk(zf.WithBenchmarkReturns, zf.ZiplineTestCase):
             )
 
     def assert_month(self, start_month, actual_end_month):
-        if start_month == 1:
-            expected_end_month = 12
-        else:
-            expected_end_month = start_month - 1
-
+        expected_end_month = 12 if start_month == 1 else start_month - 1
         self.assertEqual(expected_end_month, actual_end_month)
 
     def assert_range_length(self, col, total_months,

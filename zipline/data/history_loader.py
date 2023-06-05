@@ -57,8 +57,7 @@ class HistoryCompatibleUSEquityAdjustmentReader(object):
         for i, column in enumerate(columns):
             adjs = {}
             for asset in assets:
-                adjs.update(self._get_adjustments_in_range(
-                    asset, dts, column))
+                adjs |= self._get_adjustments_in_range(asset, dts, column)
             out[i] = adjs
         return out
 
@@ -133,10 +132,7 @@ class HistoryCompatibleUSEquityAdjustmentReader(object):
         for s in splits:
             dt = s[0]
             if start < dt <= end:
-                if field == 'volume':
-                    ratio = 1.0 / s[1]
-                else:
-                    ratio = s[1]
+                ratio = 1.0 / s[1] if field == 'volume' else s[1]
                 end_loc = dts.searchsorted(dt)
                 adj_loc = end_loc
                 mult = Float64Multiply(0,
@@ -181,8 +177,7 @@ class ContinuousFutureAdjustmentReader(object):
         for i, column in enumerate(columns):
             adjs = {}
             for asset in assets:
-                adjs.update(self._get_adjustments_in_range(
-                    asset, dts, column))
+                adjs |= self._get_adjustments_in_range(asset, dts, column)
             out[i] = adjs
         return out
 
@@ -205,7 +200,7 @@ class ContinuousFutureAdjustmentReader(object):
                          adj_value)
 
     def _get_adjustments_in_range(self, cf, dts, field):
-        if field == 'volume' or field == 'sid':
+        if field in ['volume', 'sid']:
             return {}
         if cf.adjustment is None:
             return {}
@@ -430,11 +425,7 @@ class HistoryLoader(with_metaclass(ABCMeta)):
             prefetch_len = len(prefetch_dts)
             array = self._array(prefetch_dts, needed_assets, field)
 
-            if field == 'sid':
-                window_type = Int64Window
-            else:
-                window_type = Float64Window
-
+            window_type = Int64Window if field == 'sid' else Float64Window
             view_kwargs = {}
             if field == 'volume':
                 array = array.astype(float64_dtype)

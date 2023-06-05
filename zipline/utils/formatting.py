@@ -16,10 +16,7 @@ def s(word, seq, suffix='s'):
     maybe_plural : str
         ``word`` with ``suffix`` added if ``len(seq) != 1``.
     """
-    if len(seq) == 1:
-        return word
-
-    return word + suffix
+    return word if len(seq) == 1 else word + suffix
 
 
 def plural(singular, plural, seq):
@@ -39,10 +36,7 @@ def plural(singular, plural, seq):
     maybe_plural : str
         Either ``singlular`` or ``plural``.
     """
-    if len(seq) == 1:
-        return singular
-
-    return plural
+    return singular if len(seq) == 1 else plural
 
 
 def bulleted_list(items, indent=0, bullet_type='-'):

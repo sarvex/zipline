@@ -255,7 +255,7 @@ class TestMinuteBarData(WithCreateBarData,
         )
 
         # this entire day is before either asset has started trading
-        for idx, minute in enumerate(minutes):
+        for minute in minutes:
             bar_data = self.create_bardata(
                 lambda: minute,
             )
@@ -328,51 +328,50 @@ class TestMinuteBarData(WithCreateBarData,
                 if idx == 0 and field == "low":
                     # first low value is 0, which is interpreted as NaN
                     self.assertTrue(np.isnan(asset1_value))
-                else:
-                    if field in OHLC:
+                elif field in OHLC:
+                    self.assertEqual(
+                        idx + 1 + field_info[field],
+                        asset1_value
+                    )
+
+                    if asset2_has_data:
                         self.assertEqual(
                             idx + 1 + field_info[field],
-                            asset1_value
+                            asset2_value
                         )
+                    else:
+                        self.assertTrue(np.isnan(asset2_value))
+                elif field == "volume":
+                    self.assertEqual((idx + 1) * 100, asset1_value)
 
-                        if asset2_has_data:
-                            self.assertEqual(
-                                idx + 1 + field_info[field],
-                                asset2_value
-                            )
-                        else:
-                            self.assertTrue(np.isnan(asset2_value))
-                    elif field == "volume":
-                        self.assertEqual((idx + 1) * 100, asset1_value)
+                    if asset2_has_data:
+                        self.assertEqual((idx + 1) * 100, asset2_value)
+                    else:
+                        self.assertEqual(0, asset2_value)
+                elif field == "price":
+                    self.assertEqual(idx + 1, asset1_value)
 
-                        if asset2_has_data:
-                            self.assertEqual((idx + 1) * 100, asset2_value)
-                        else:
-                            self.assertEqual(0, asset2_value)
-                    elif field == "price":
-                        self.assertEqual(idx + 1, asset1_value)
+                    if asset2_has_data:
+                        self.assertEqual(idx + 1, asset2_value)
+                    elif idx < 9:
+                        # no price to forward fill from
+                        self.assertTrue(np.isnan(asset2_value))
+                    else:
+                        # forward-filled price
+                        self.assertEqual((idx // 10) * 10, asset2_value)
+                elif field == "last_traded":
+                    self.assertEqual(minute, asset1_value)
 
-                        if asset2_has_data:
-                            self.assertEqual(idx + 1, asset2_value)
-                        elif idx < 9:
-                            # no price to forward fill from
-                            self.assertTrue(np.isnan(asset2_value))
-                        else:
-                            # forward-filled price
-                            self.assertEqual((idx // 10) * 10, asset2_value)
-                    elif field == "last_traded":
-                        self.assertEqual(minute, asset1_value)
-
-                        if idx < 9:
-                            self.assertTrue(asset2_value is pd.NaT)
-                        elif asset2_has_data:
-                            self.assertEqual(minute, asset2_value)
-                        else:
-                            last_traded_minute = minutes[(idx // 10) * 10]
-                            self.assertEqual(
-                                last_traded_minute - timedelta(minutes=1),
-                                asset2_value
-                            )
+                    if idx < 9:
+                        self.assertTrue(asset2_value is pd.NaT)
+                    elif asset2_has_data:
+                        self.assertEqual(minute, asset2_value)
+                    else:
+                        last_traded_minute = minutes[(idx // 10) * 10]
+                        self.assertEqual(
+                            last_traded_minute - timedelta(minutes=1),
+                            asset2_value
+                        )
 
     def test_minute_of_last_day(self):
         minutes = self.trading_calendar.minutes_for_session(
@@ -380,7 +379,7 @@ class TestMinuteBarData(WithCreateBarData,
         )
 
         # this is the last day the assets exist
-        for idx, minute in enumerate(minutes):
+        for minute in minutes:
             bar_data = self.create_bardata(
                 lambda: minute,
             )
@@ -400,7 +399,7 @@ class TestMinuteBarData(WithCreateBarData,
         )[-1]
 
         # this entire day is after both assets have stopped trading
-        for idx, minute in enumerate(minutes):
+        for minute in minutes:
             bar_data = self.create_bardata(
                 lambda: minute,
             )
@@ -463,7 +462,7 @@ class TestMinuteBarData(WithCreateBarData,
             self.equity_minute_bar_days[1]
         )
 
-        for idx, minute in enumerate(day0_minutes[-10:-1]):
+        for minute in day0_minutes[-10:-1]:
             bar_data = self.create_bardata(
                 lambda: minute,
             )
@@ -481,7 +480,7 @@ class TestMinuteBarData(WithCreateBarData,
             bar_data.current(self.ILLIQUID_SPLIT_ASSET, "price")
         )
 
-        for idx, minute in enumerate(day1_minutes[0:9]):
+        for minute in day1_minutes[:9]:
             bar_data = self.create_bardata(
                 lambda: minute,
             )
@@ -625,9 +624,9 @@ class TestMinuteBarData(WithCreateBarData,
         # for all minutes afterwards.
 
         minutes_in_session = \
-            self.trading_calendar.minutes_for_session(self.ASSET1.start_date)
+                self.trading_calendar.minutes_for_session(self.ASSET1.start_date)
 
-        for minute in minutes_in_session[0:49]:
+        for minute in minutes_in_session[:49]:
             bar_data = self.create_bardata(
                 simulation_dt_func=lambda: minute,
             )

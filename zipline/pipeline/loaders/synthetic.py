@@ -90,10 +90,8 @@ class PrecomputedLoader(implements(PipelineLoader)):
                 if loader is None:
                     loader = self._loaders[col.unspecialize()]
             except KeyError:
-                raise ValueError("Couldn't find loader for %s" % col)
-            out.update(
-                loader.load_adjusted_array(domain, [col], dates, sids, mask)
-            )
+                raise ValueError(f"Couldn't find loader for {col}")
+            out |= loader.load_adjusted_array(domain, [col], dates, sids, mask)
         return out
 
 
@@ -199,8 +197,7 @@ class SeededRandomLoader(PrecomputedLoader):
         return self.state.randn(*shape) < 0
 
     def _object_values(self, shape):
-        res = self._int_values(shape).astype(str).astype(object)
-        return res
+        return self._int_values(shape).astype(str).astype(object)
 
 
 OHLCV = ('open', 'high', 'low', 'close', 'volume')

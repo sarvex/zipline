@@ -10,7 +10,7 @@ from subprocess import check_call
 HERE = dirname(abspath(__file__))
 ZIPLINE_ROOT = dirname(HERE)
 TEMP_LOCATION = '/tmp/zipline-doc'
-TEMP_LOCATION_GLOB = TEMP_LOCATION + '/*'
+TEMP_LOCATION_GLOB = f'{TEMP_LOCATION}/*'
 
 
 @contextmanager
@@ -32,7 +32,7 @@ def ensure_not_exists(path):
 
 def main():
     old_dir = os.getcwd()
-    print("Moving to %s." % HERE)
+    print(f"Moving to {HERE}.")
     os.chdir(HERE)
 
     try:
@@ -41,14 +41,14 @@ def main():
         print("Building docs with 'make html'")
         check_call(['make', 'html'])
 
-        print("Clearing temp location '%s'" % TEMP_LOCATION)
+        print(f"Clearing temp location '{TEMP_LOCATION}'")
         rmtree(TEMP_LOCATION, ignore_errors=True)
 
         with removing(TEMP_LOCATION):
             print("Copying built files to temp location.")
             move('build/html', TEMP_LOCATION)
 
-            print("Moving to '%s'" % ZIPLINE_ROOT)
+            print(f"Moving to '{ZIPLINE_ROOT}'")
             os.chdir(ZIPLINE_ROOT)
 
             print("Checking out gh-pages branch.")
@@ -65,14 +65,14 @@ def main():
             for file_ in glob(TEMP_LOCATION_GLOB):
                 base = basename(file_)
 
-                print("%s -> %s" % (file_, base))
+                print(f"{file_} -> {base}")
                 ensure_not_exists(base)
                 move(file_, '.')
     finally:
         os.chdir(old_dir)
 
     print()
-    print("Updated documentation branch in directory %s" % ZIPLINE_ROOT)
+    print(f"Updated documentation branch in directory {ZIPLINE_ROOT}")
     print("If you are happy with these changes, commit and push to gh-pages.")
 
 

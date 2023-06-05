@@ -135,7 +135,7 @@ def mask_requests_args(url, validating=False, params_checker=None, **kwargs):
     # (Note that Quandl links can take >10 seconds to return their
     # first byte on occasion)
     requests_kwargs['timeout'] = 1.0 if validating else 30.0
-    requests_kwargs.update(SHARED_REQUESTS_KWARGS)
+    requests_kwargs |= SHARED_REQUESTS_KWARGS
 
     request_pair = namedtuple("RequestPair", ("requests_kwargs", "url"))
     return request_pair(requests_kwargs, url)
@@ -170,11 +170,8 @@ class PandasCSV(with_metaclass(ABCMeta, object)):
         self.data_frequency = data_frequency
         self.country_code = country_code
 
-        invalid_kwargs = set(kwargs) - ALLOWED_READ_CSV_KWARGS
-        if invalid_kwargs:
-            raise TypeError(
-                "Unexpected keyword arguments: %s" % invalid_kwargs,
-            )
+        if invalid_kwargs := set(kwargs) - ALLOWED_READ_CSV_KWARGS:
+            raise TypeError(f"Unexpected keyword arguments: {invalid_kwargs}")
 
         self.pandas_kwargs = self.mask_pandas_args(kwargs)
 
@@ -364,10 +361,9 @@ class PandasCSV(with_metaclass(ABCMeta, object)):
             # Filter out rows containing symbols that we failed to find.
             length_before_drop = len(df)
             df = df[df['sid'].notnull()]
-            no_sid_count = length_before_drop - len(df)
-            if no_sid_count:
+            if no_sid_count := length_before_drop - len(df):
                 logger.warn(
-                    "Dropped {} rows from fetched csv.".format(no_sid_count),
+                    f"Dropped {no_sid_count} rows from fetched csv.",
                     no_sid_count,
                     extra={'syslog': True},
                 )
@@ -437,9 +433,9 @@ class PandasCSV(with_metaclass(ABCMeta, object)):
                 # Clone for user algo code, if we haven't already.
                 asset_cache[event.sid] = event.sid
             elif self.finder and isinstance(event.sid, int):
-                asset = self.finder.retrieve_asset(event.sid,
-                                                   default_none=True)
-                if asset:
+                if asset := self.finder.retrieve_asset(
+                    event.sid, default_none=True
+                ):
                     # Clone for user algo code.
                     event.sid = asset_cache[asset] = asset
                 elif self.mask:
@@ -535,10 +531,10 @@ class PandasRequestsCSV(PandasCSV):
         try:
             response = requests.get(url, **self.requests_kwargs)
         except requests.exceptions.ConnectionError:
-            raise Exception('Could not connect to %s' % url)
+            raise Exception(f'Could not connect to {url}')
 
         if not response.ok:
-            raise Exception('Problem reaching %s' % url)
+            raise Exception(f'Problem reaching {url}')
         elif response.is_redirect:
             # On the offchance we don't catch a redirect URL
             # in validation, this will catch it.

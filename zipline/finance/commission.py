@@ -124,21 +124,18 @@ def calculate_per_unit_commission(order,
         # no commission paid yet, pay at least the minimum plus a one-time
         # exchange fee.
         return max(min_trade_cost, additional_commission + initial_commission)
-    else:
-        # we've already paid some commission, so figure out how much we
-        # would be paying if we only counted per unit.
-        per_unit_total = \
-            abs(order.filled * cost_per_unit) + \
-            additional_commission + \
-            initial_commission
+    # we've already paid some commission, so figure out how much we
+    # would be paying if we only counted per unit.
+    per_unit_total = \
+        abs(order.filled * cost_per_unit) + \
+        additional_commission + \
+        initial_commission
 
-        if per_unit_total < min_trade_cost:
-            # if we haven't hit the minimum threshold yet, don't pay
-            # additional commission
-            return 0
-        else:
-            # we've exceeded the threshold, so pay more commission.
-            return per_unit_total - order.commission
+    return (
+        0
+        if per_unit_total < min_trade_cost
+        else per_unit_total - order.commission
+    )
 
 
 class PerShare(EquityCommissionModel):
@@ -309,14 +306,7 @@ class PerTrade(CommissionModel):
         If the order hasn't had a commission paid yet, pay the fixed
         commission.
         """
-        if order.commission == 0:
-            # if the order hasn't had a commission attributed to it yet,
-            # that's what we need to pay.
-            return self.cost
-        else:
-            # order has already had commission attributed, so no more
-            # commission.
-            return 0.0
+        return self.cost if order.commission == 0 else 0.0
 
 
 class PerFutureTrade(PerContract):

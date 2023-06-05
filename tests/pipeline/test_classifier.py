@@ -437,14 +437,7 @@ class ClassifierTestCase(BaseUSEquityPipelineTestCase):
             with self.assertRaises(ValueError) as e:
                 c.element_of(bad_elems)
             errmsg = str(e.exception)
-            expected = (
-                "Found self.missing_value ('not in the array') in choices"
-                " supplied to C.element_of().\n"
-                "Missing values have NaN semantics, so the requested"
-                " comparison would always produce False.\n"
-                "Use the isnull() method to check for missing values.\n"
-                "Received choices were {}.".format(bad_elems)
-            )
+            expected = f"Found self.missing_value ('not in the array') in choices supplied to C.element_of().\nMissing values have NaN semantics, so the requested comparison would always produce False.\nUse the isnull() method to check for missing values.\nReceived choices were {bad_elems}."
             self.assertEqual(errmsg, expected)
 
     @parameter_space(dtype_=Classifier.ALLOWED_DTYPES)
@@ -532,9 +525,7 @@ class ClassifierTestCase(BaseUSEquityPipelineTestCase):
         c = C()
 
         def relabel_func(s):
-            if s == 'B':
-                return mv
-            return ''.join([s, s])
+            return mv if s == 'B' else ''.join([s, s])
 
         raw = np.asarray(
             [['A', 'B', 'C', mv],
@@ -568,6 +559,7 @@ class ClassifierTestCase(BaseUSEquityPipelineTestCase):
         )
 
     def test_relabel_int_classifier_not_yet_supported(self):
+
         class C(Classifier):
             inputs = ()
             dtype = int64_dtype
@@ -577,7 +569,7 @@ class ClassifierTestCase(BaseUSEquityPipelineTestCase):
         c = C()
 
         with self.assertRaises(TypeError) as e:
-            c.relabel(lambda x: 0 / 0)  # Function should never be called.
+            c.relabel(lambda x: 1)
 
         result = str(e.exception)
         expected = (
@@ -591,6 +583,7 @@ class ClassifierTestCase(BaseUSEquityPipelineTestCase):
         dtype_and_missing=[(int64_dtype, 0), (categorical_dtype, '')],
     )
     def test_bad_compare(self, compare_op, dtype_and_missing):
+
         class C(Classifier):
             inputs = ()
             window_length = 0
@@ -602,9 +595,7 @@ class ClassifierTestCase(BaseUSEquityPipelineTestCase):
 
         self.assertEqual(
             str(e.exception),
-            'cannot compare classifiers with %s' % (
-                methods_to_ops['__%s__' % compare_op.__name__],
-            ),
+            f"cannot compare classifiers with {methods_to_ops[f'__{compare_op.__name__}__']}",
         )
 
     @parameter_space(

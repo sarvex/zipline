@@ -95,7 +95,7 @@ def make_simple_equity_info(sids,
         symbols = list(symbols)
 
     if names is None:
-        names = [str(s) + " INC." for s in symbols]
+        names = [f"{str(s)} INC." for s in symbols]
 
     return pd.DataFrame(
         {
@@ -265,10 +265,9 @@ def make_future_info(first_sid,
         )
     )
 
-    contracts = []
     parts = product(root_symbols, contract_suffix_to_beginning_of_month)
-    for sid, (root_sym, (suffix, month_begin)) in enumerate(parts, first_sid):
-        contracts.append({
+    contracts = [
+        {
             'sid': sid,
             'root_symbol': root_sym,
             'symbol': root_sym + suffix,
@@ -277,7 +276,11 @@ def make_future_info(first_sid,
             'expiration_date': expiration_date_func(month_begin),
             'multiplier': multiplier,
             'exchange': "TEST",
-        })
+        }
+        for sid, (root_sym, (suffix, month_begin)) in enumerate(
+            parts, first_sid
+        )
+    ]
     return pd.DataFrame.from_records(contracts, index='sid')
 
 

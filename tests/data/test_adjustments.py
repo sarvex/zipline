@@ -83,7 +83,7 @@ class TestSQLiteAdjustmentsWriter(WithTradingCalendars,
 
     def assert_all_empty(self, dfs):
         for k, v in dfs.items():
-            assert_equal(len(v), 0, msg='%s dataframe should be empty' % k)
+            assert_equal(len(v), 0, msg=f'{k} dataframe should be empty')
 
     def test_calculate_dividend_ratio(self):
         first_date_ix = 200
@@ -279,11 +279,7 @@ class TestSQLiteAdjustmentsWriter(WithTradingCalendars,
         sids = np.arange(5)
         dates = self.trading_calendar.all_sessions.tz_convert(None)
 
-        if convert_dates:
-            date_dtype = np.dtype('M8[ns]')
-        else:
-            date_dtype = np.dtype('int64')
-
+        date_dtype = np.dtype('M8[ns]') if convert_dates else np.dtype('int64')
         # Write all empty frames.
         self.writer_without_pricing(dates, sids).write()
 

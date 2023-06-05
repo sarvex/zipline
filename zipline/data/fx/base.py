@@ -131,9 +131,7 @@ class FXRateReader(Interface):
             multiple times. Datetimes do not need to be sorted.
         """
         if len(bases) != len(dts):
-            raise ValueError(
-                "len(bases) ({}) != len(dts) ({})".format(len(bases), len(dts))
-            )
+            raise ValueError(f"len(bases) ({len(bases)}) != len(dts) ({len(dts)})")
 
         bases_ix, unique_bases, _ = factorize_strings(
             bases,

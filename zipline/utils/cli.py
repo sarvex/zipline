@@ -51,11 +51,7 @@ class _DatetimeParam(click.ParamType):
         try:
             return self.parser(value)
         except ValueError:
-            self.fail(
-                '%s is not a valid %s' % (value, self.name.lower()),
-                param,
-                ctx,
-            )
+            self.fail(f'{value} is not a valid {self.name.lower()}', param, ctx)
 
 
 class Timestamp(_DatetimeParam):

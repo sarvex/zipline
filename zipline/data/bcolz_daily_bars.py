@@ -60,9 +60,7 @@ UINT32_MAX = iinfo(np.uint32).max
 
 def check_uint32_safe(value, colname):
     if value >= UINT32_MAX:
-        raise ValueError(
-            "Value %s from column '%s' is too large" % (value, colname)
-        )
+        raise ValueError(f"Value {value} from column '{colname}' is too large")
 
 
 @expect_element(invalid_data_behavior={'warn', 'raise', 'ignore'})
@@ -147,13 +145,9 @@ class BcolzDailyBarWriter(object):
 
         if start_session != end_session:
             if not calendar.is_session(start_session):
-                raise ValueError(
-                    "Start session %s is invalid!" % start_session
-                )
+                raise ValueError(f"Start session {start_session} is invalid!")
             if not calendar.is_session(end_session):
-                raise ValueError(
-                    "End session %s is invalid!" % end_session
-                )
+                raise ValueError(f"End session {end_session} is invalid!")
 
         self._start_session = start_session
         self._end_session = end_session
@@ -466,17 +460,14 @@ class BcolzDailyBarReader(CurrencyAwareSessionBarReader):
         if 'calendar' in self._table.attrs.attrs:
             # backwards compatibility with old formats, will remove
             return DatetimeIndex(self._table.attrs['calendar'], tz='UTC')
-        else:
-            cal = get_calendar(self._table.attrs['calendar_name'])
-            start_session_ns = self._table.attrs['start_session_ns']
-            start_session = Timestamp(start_session_ns, tz='UTC')
+        cal = get_calendar(self._table.attrs['calendar_name'])
+        start_session_ns = self._table.attrs['start_session_ns']
+        start_session = Timestamp(start_session_ns, tz='UTC')
 
-            end_session_ns = self._table.attrs['end_session_ns']
-            end_session = Timestamp(end_session_ns, tz='UTC')
+        end_session_ns = self._table.attrs['end_session_ns']
+        end_session = Timestamp(end_session_ns, tz='UTC')
 
-            sessions = cal.sessions_in_range(start_session, end_session)
-
-            return sessions
+        return cal.sessions_in_range(start_session, end_session)
 
     @lazyval
     def _first_rows(self):
@@ -698,10 +689,7 @@ class BcolzDailyBarReader(CurrencyAwareSessionBarReader):
         ix = self.sid_day_index(sid, dt)
         price = self._spot_col(field)[ix]
         if field != 'volume':
-            if price == 0:
-                return nan
-            else:
-                return price * 0.001
+            return nan if price == 0 else price * 0.001
         else:
             return price
 

@@ -584,11 +584,7 @@ class ComputeExtraRowsTestCase(WithTradingSessions, ZiplineTestCase):
             self.assertEqual(
                 result,
                 expected_extra_rows,
-                "Expected {} extra_rows from {}, but got {}.".format(
-                    expected_extra_rows,
-                    term,
-                    result,
-                )
+                f"Expected {expected_extra_rows} extra_rows from {term}, but got {result}.",
             )
 
 
@@ -668,9 +664,8 @@ class DownsampledPipelineTestCase(WithSeededRandomPipelineEngine,
 
         results = self.run_pipeline(pipe, start_date, end_date)
 
-        for frequency in expected_results:
+        for frequency, expected in expected_results.items():
             result = results[frequency].unstack()
-            expected = expected_results[frequency]
             assert_frame_equal(result, expected)
 
     def test_downsample_windowed_factor(self):
@@ -729,11 +724,7 @@ class DownsampledPipelineTestCase(WithSeededRandomPipelineEngine,
         with self.assertRaises(ValueError) as e:
             f.downsample('bad')
 
-        expected = (
-            "{}() expected a value in "
-            "('month_start', 'quarter_start', 'week_start', 'year_start') "
-            "for argument 'frequency', but got 'bad' instead."
-        ).format(_qualified_name(f.downsample))
+        expected = f"{_qualified_name(f.downsample)}() expected a value in ('month_start', 'quarter_start', 'week_start', 'year_start') for argument 'frequency', but got 'bad' instead."
         self.assertEqual(str(e.exception), expected)
 
 

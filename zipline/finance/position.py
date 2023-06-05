@@ -121,8 +121,8 @@ class Position(object):
 
         return_cash = round(float(fractional_share_count * new_cost_basis), 2)
 
-        log.info("after split: " + str(self))
-        log.info("returning cash: " + str(return_cash))
+        log.info(f"after split: {str(self)}")
+        log.info(f"returning cash: {str(return_cash)}")
 
         # return the leftover cash, which will be converted into cash
         # (rounded to the nearest cent)
@@ -141,18 +141,16 @@ class Position(object):
             prev_direction = copysign(1, self.amount)
             txn_direction = copysign(1, txn.amount)
 
-            if prev_direction != txn_direction:
-                # we're covering a short or closing a position
-                if abs(txn.amount) > abs(self.amount):
-                    # we've closed the position and gone short
-                    # or covered the short position and gone long
-                    self.cost_basis = txn.price
-            else:
+            if prev_direction == txn_direction:
                 prev_cost = self.cost_basis * self.amount
                 txn_cost = txn.amount * txn.price
                 total_cost = prev_cost + txn_cost
                 self.cost_basis = total_cost / total_shares
 
+            elif abs(txn.amount) > abs(self.amount):
+                # we've closed the position and gone short
+                # or covered the short position and gone long
+                self.cost_basis = txn.price
             # Update the last sale price if txn is
             # best data we have so far
             if self.last_sale_date is None or txn.dt > self.last_sale_date:

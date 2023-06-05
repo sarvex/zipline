@@ -161,13 +161,8 @@ class StartOfPeriodLedgerField(object):
 class Returns(object):
     """Tracks the daily and cumulative returns of the algorithm.
     """
-    def _end_of_period(field,
-                       packet,
-                       ledger,
-                       dt,
-                       session_ix,
-                       data_portal):
-        packet[field]['returns'] = ledger.todays_returns
+    def _end_of_period(self, packet, ledger, dt, session_ix, data_portal):
+        packet[self]['returns'] = ledger.todays_returns
         packet['cumulative_perf']['returns'] = ledger.portfolio.returns
         packet['cumulative_risk_metrics']['algorithm_period_return'] = (
             ledger.portfolio.returns

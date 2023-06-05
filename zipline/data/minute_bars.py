@@ -106,11 +106,7 @@ def _sid_subdir_path(sid):
     """
     padded_sid = format(sid, '06')
     return os.path.join(
-        # subdir 1 00/XX
-        padded_sid[0:2],
-        # subdir 2 XX/00
-        padded_sid[2:4],
-        "{0}.bcolz".format(str(padded_sid))
+        padded_sid[:2], padded_sid[2:4], "{0}.bcolz".format(str(padded_sid))
     )
 
 
@@ -553,10 +549,7 @@ class BcolzMinuteBarWriter(object):
         # use integer division so that the result is an int
         # for pandas index later https://github.com/pandas-dev/pandas/blob/master/pandas/tseries/base.py#L247 # noqa
         num_days = data['shape'][0] // self._minutes_per_day
-        if num_days == 0:
-            # empty container
-            return pd.NaT
-        return self._session_labels[num_days - 1]
+        return pd.NaT if num_days == 0 else self._session_labels[num_days - 1]
 
     def _init_ctable(self, path):
         """
@@ -752,7 +745,7 @@ class BcolzMinuteBarWriter(object):
             close : float64
             volume : float64|int64
         """
-        if not all(len(dts) == len(cols[name]) for name in self.COL_NAMES):
+        if any(len(dts) != len(cols[name]) for name in self.COL_NAMES):
             raise BcolzMinuteWriterColumnMismatch(
                 "Length of dts={0} should match cols: {1}".format(
                     len(dts),
@@ -931,14 +924,13 @@ class BcolzMinuteBarReader(MinuteBarReader):
         self._schedule = self.calendar.schedule[slicer]
         self._market_opens = self._schedule.market_open
         self._market_open_values = self._market_opens.values.\
-            astype('datetime64[m]').astype(np.int64)
+                astype('datetime64[m]').astype(np.int64)
         self._market_closes = self._schedule.market_close
         self._market_close_values = self._market_closes.values.\
-            astype('datetime64[m]').astype(np.int64)
+                astype('datetime64[m]').astype(np.int64)
 
         self._default_ohlc_inverse = 1.0 / metadata.default_ohlc_ratio
-        ohlc_ratios = metadata.ohlc_ratios_per_sid
-        if ohlc_ratios:
+        if ohlc_ratios := metadata.ohlc_ratios_per_sid:
             self._ohlc_inverses_per_sid = (
                 valmap(lambda x: 1.0 / x, ohlc_ratios))
         else:
@@ -1008,10 +1000,7 @@ class BcolzMinuteBarReader(MinuteBarReader):
             minutes_per_day != self._minutes_per_day - 1)[0]
         early_opens = self._market_opens[early_indices]
         early_closes = self._market_closes[early_indices]
-        minutes = [(market_open, early_close)
-                   for market_open, early_close
-                   in zip(early_opens, early_closes)]
-        return minutes
+        return list(zip(early_opens, early_closes))
 
     @lazyval
     def _minute_exclusion_tree(self):
@@ -1053,14 +1042,11 @@ class BcolzMinuteBarReader(MinuteBarReader):
         which should be excluded when a market minute window is requested.
         """
         itree = self._minute_exclusion_tree
-        if itree.overlaps(start_idx, end_idx):
-            ranges = []
-            intervals = itree[start_idx:end_idx]
-            for interval in intervals:
-                ranges.append(interval.data)
-            return sorted(ranges)
-        else:
+        if not itree.overlaps(start_idx, end_idx):
             return None
+        intervals = itree[start_idx:end_idx]
+        ranges = [interval.data for interval in intervals]
+        return sorted(ranges)
 
     def _get_carray_path(self, sid, field):
         sid_subdir = _sid_subdir_path(sid)
@@ -1079,7 +1065,7 @@ class BcolzMinuteBarReader(MinuteBarReader):
                     mode='r',
                 )
             except IOError:
-                raise NoDataForSid('No minute data for sid {}.'.format(sid))
+                raise NoDataForSid(f'No minute data for sid {sid}.')
 
         return carray
 
@@ -1140,20 +1126,14 @@ class BcolzMinuteBarReader(MinuteBarReader):
         except IndexError:
             value = 0
         if value == 0:
-            if field == 'volume':
-                return 0
-            else:
-                return np.nan
-
+            return 0 if field == 'volume' else np.nan
         if field != 'volume':
             value *= self._ohlc_ratio_inverse_for_sid(sid)
         return value
 
     def get_last_traded_dt(self, asset, dt):
         minute_pos = self._find_last_traded_position(asset, dt)
-        if minute_pos == -1:
-            return pd.NaT
-        return self._pos_to_minute(minute_pos)
+        return pd.NaT if minute_pos == -1 else self._pos_to_minute(minute_pos)
 
     def _find_last_traded_position(self, asset, dt):
         volumes = self._open_minute_file('volume', asset)

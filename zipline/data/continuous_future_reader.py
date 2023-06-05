@@ -75,7 +75,7 @@ class ContinuousFutureSessionBarReader(SessionBarReader):
                     start = sessions[end_loc + 1]
 
         for column in columns:
-            if column != 'volume' and column != 'sid':
+            if column not in ['volume', 'sid']:
                 out = np.full(shape, np.nan)
             else:
                 out = np.zeros(shape, dtype=np.int64)

@@ -94,21 +94,17 @@ def preprocess(*_unused, **processors):
 
         # Arguments can be declared as tuples in Python 2.
         if not all(isinstance(arg, str) for arg in args):
-            raise TypeError(
-                "Can't validate functions using tuple unpacking: %s" %
-                (argspec,)
-            )
+            raise TypeError(f"Can't validate functions using tuple unpacking: {argspec}")
 
         # Ensure that all processors map to valid names.
         bad_names = viewkeys(processors) - argset
         if bad_names:
-            raise TypeError(
-                "Got processors for unknown arguments: %s." % bad_names
-            )
+            raise TypeError(f"Got processors for unknown arguments: {bad_names}.")
 
         return _build_preprocessed_function(
             f, processors, args_defaults, varargs, varkw,
         )
+
     return _decorator
 
 
@@ -153,7 +149,7 @@ def _build_preprocessed_function(func,
     format_kwargs = {'func_name': func.__name__}
 
     def mangle(name):
-        return 'a' + uuid4().hex + name
+        return f'a{uuid4().hex}{name}'
 
     format_kwargs['mangled_func'] = mangled_funcname = mangle(func.__name__)
 
@@ -167,7 +163,7 @@ def _build_preprocessed_function(func,
 
     exec_globals = {mangled_funcname: func, 'wraps': wraps}
     defaults_seen = 0
-    default_name_template = 'a' + uuid4().hex + '_%d'
+    default_name_template = f'a{uuid4().hex}_%d'
     signature = []
     call_args = []
     assignments = []
@@ -189,7 +185,7 @@ def _build_preprocessed_function(func,
             defaults_seen += 1
 
         if arg in processors:
-            procname = mangle('_processor_' + arg)
+            procname = mangle(f'_processor_{arg}')
             exec_globals[procname] = processors[arg]
             assignments.append(make_processor_assignment(arg, procname))
 

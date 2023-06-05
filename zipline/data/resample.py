@@ -158,10 +158,7 @@ class DailyHistoryAggregator(object):
 
         _, market_open, entries = cache
         market_open = market_open.tz_localize('UTC')
-        if dt != market_open:
-            prev_dt = dt_value - self._one_min
-        else:
-            prev_dt = None
+        prev_dt = dt_value - self._one_min if dt != market_open else None
         return market_open, prev_dt, dt_value, entries
 
     def opens(self, assets, dt):
@@ -197,11 +194,9 @@ class DailyHistoryAggregator(object):
                     last_visited_dt, first_open = entries[asset]
                     if last_visited_dt == dt_value:
                         opens.append(first_open)
-                        continue
                     elif not pd.isnull(first_open):
                         opens.append(first_open)
                         entries[asset] = (dt_value, first_open)
-                        continue
                     else:
                         after_last = pd.Timestamp(
                             last_visited_dt + self._one_min, tz='UTC')
@@ -212,13 +207,10 @@ class DailyHistoryAggregator(object):
                             [asset],
                         )[0]
                         nonnan = window[~pd.isnull(window)]
-                        if len(nonnan):
-                            val = nonnan[0]
-                        else:
-                            val = np.nan
+                        val = nonnan[0] if len(nonnan) else np.nan
                         entries[asset] = (dt_value, val)
                         opens.append(val)
-                        continue
+                    continue
                 except KeyError:
                     window = self._minute_reader.load_raw_arrays(
                         ['open'],
@@ -227,10 +219,7 @@ class DailyHistoryAggregator(object):
                         [asset],
                     )[0]
                     nonnan = window[~pd.isnull(window)]
-                    if len(nonnan):
-                        val = nonnan[0]
-                    else:
-                        val = np.nan
+                    val = nonnan[0] if len(nonnan) else np.nan
                     entries[asset] = (dt_value, val)
                     opens.append(val)
                     continue
@@ -266,7 +255,6 @@ class DailyHistoryAggregator(object):
                     last_visited_dt, last_max = entries[asset]
                     if last_visited_dt == dt_value:
                         highs.append(last_max)
-                        continue
                     elif last_visited_dt == prev_dt:
                         curr_val = self._minute_reader.get_value(
                             asset, dt, 'high')
@@ -278,7 +266,6 @@ class DailyHistoryAggregator(object):
                             val = max(last_max, curr_val)
                         entries[asset] = (dt_value, val)
                         highs.append(val)
-                        continue
                     else:
                         after_last = pd.Timestamp(
                             last_visited_dt + self._one_min, tz='UTC')
@@ -291,7 +278,7 @@ class DailyHistoryAggregator(object):
                         val = np.nanmax(np.append(window, last_max))
                         entries[asset] = (dt_value, val)
                         highs.append(val)
-                        continue
+                    continue
                 except KeyError:
                     window = self._minute_reader.load_raw_arrays(
                         ['high'],
@@ -335,14 +322,12 @@ class DailyHistoryAggregator(object):
                     last_visited_dt, last_min = entries[asset]
                     if last_visited_dt == dt_value:
                         lows.append(last_min)
-                        continue
                     elif last_visited_dt == prev_dt:
                         curr_val = self._minute_reader.get_value(
                             asset, dt, 'low')
                         val = np.nanmin([last_min, curr_val])
                         entries[asset] = (dt_value, val)
                         lows.append(val)
-                        continue
                     else:
                         after_last = pd.Timestamp(
                             last_visited_dt + self._one_min, tz='UTC')
@@ -355,7 +340,7 @@ class DailyHistoryAggregator(object):
                         val = np.nanmin(np.append(window, last_min))
                         entries[asset] = (dt_value, val)
                         lows.append(val)
-                        continue
+                    continue
                 except KeyError:
                     window = self._minute_reader.load_raw_arrays(
                         ['low'],
@@ -475,14 +460,12 @@ class DailyHistoryAggregator(object):
                     last_visited_dt, last_total = entries[asset]
                     if last_visited_dt == dt_value:
                         volumes.append(last_total)
-                        continue
                     elif last_visited_dt == prev_dt:
                         val = self._minute_reader.get_value(
                             asset, dt, 'volume')
                         val += last_total
                         entries[asset] = (dt_value, val)
                         volumes.append(val)
-                        continue
                     else:
                         after_last = pd.Timestamp(
                             last_visited_dt + self._one_min, tz='UTC')
@@ -495,7 +478,7 @@ class DailyHistoryAggregator(object):
                         val = np.nansum(window) + last_total
                         entries[asset] = (dt_value, val)
                         volumes.append(val)
-                        continue
+                    continue
                 except KeyError:
                     window = self._minute_reader.load_raw_arrays(
                         ['volume'],
@@ -654,10 +637,7 @@ class ReindexBarReader(with_metaclass(ABCMeta)):
         try:
             return self._reader.get_value(sid, dt, field)
         except NoDataOnDate:
-            if field == 'volume':
-                return 0
-            else:
-                return np.nan
+            return 0 if field == 'volume' else np.nan
 
     @abstractmethod
     def _outer_dts(self, start_dt, end_dt):

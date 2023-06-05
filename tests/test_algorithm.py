@@ -580,8 +580,7 @@ def log_nyse_close(context, data):
         self.assertEqual(
             len(function_stack),
             3900,
-            'Incorrect number of functions called: %s != 3900' %
-            len(function_stack),
+            f'Incorrect number of functions called: {len(function_stack)} != 3900',
         )
         expected_functions = [pre, handle_data, f, g, post] * 97530
         for n, (f, g) in enumerate(zip(function_stack, expected_functions)):
@@ -893,10 +892,7 @@ class TestPositions(zf.WithMakeAlgo, zf.ZiplineTestCase):
                 amounts = [pos.amount for pos
                            in itervalues(context.portfolio.positions)]
 
-                if (
-                    len(amounts) > 0 and
-                    all([(amount == 1) for amount in amounts])
-                ):
+                if amounts and all(amount == 1 for amount in amounts):
                     for stock in context.portfolio.positions:
                         context.order(context.sid(stock), -1)
                     context.exited = True
@@ -1161,7 +1157,7 @@ class TestBeforeTradingStart(zf.WithMakeAlgo, zf.ZiplineTestCase):
 
         # asset2 day1 price should be 19 300s, then 40 350s
         np.testing.assert_array_equal(
-            [300] * 19, algo.history_values[0]["price"][2][0:19]
+            [300] * 19, algo.history_values[0]["price"][2][:19]
         )
 
         np.testing.assert_array_equal(
@@ -1171,7 +1167,7 @@ class TestBeforeTradingStart(zf.WithMakeAlgo, zf.ZiplineTestCase):
         # asset2 day1 high should be all NaNs except for the 19th item
         # = 2016-01-05 20:20:00+00:00
         np.testing.assert_array_equal(
-            np.full(19, np.nan), algo.history_values[0]["high"][2][0:19]
+            np.full(19, np.nan), algo.history_values[0]["high"][2][:19]
         )
 
         self.assertEqual(352, algo.history_values[0]["high"][2][19])
@@ -1837,8 +1833,10 @@ def handle_data(context, data):
         with self.assertRaises(TypeError) as cm:
             algo.run()
 
-        self.assertEqual("%s() got an unexpected keyword argument 'blahblah'"
-                         % name, cm.exception.args[0])
+        self.assertEqual(
+            f"{name}() got an unexpected keyword argument 'blahblah'",
+            cm.exception.args[0],
+        )
 
     @parameterized.expand(ARG_TYPE_TEST_CASES)
     def test_arg_types(self, name, inputs):
@@ -1849,11 +1847,7 @@ def handle_data(context, data):
         with self.assertRaises(TypeError) as cm:
             algo.run()
 
-        expected = "Expected %s argument to be of type %s%s" % (
-            keyword,
-            'or iterable of type ' if inputs[2] else '',
-            inputs[1]
-        )
+        expected = f"Expected {keyword} argument to be of type {'or iterable of type ' if inputs[2] else ''}{inputs[1]}"
 
         self.assertEqual(expected, cm.exception.args[0])
 
@@ -2070,10 +2064,10 @@ def order_stuff(context, data):
         results = list(gen)
 
         cumulative_perf = \
-            [r['cumulative_perf'] for r in results if 'cumulative_perf' in r]
+                [r['cumulative_perf'] for r in results if 'cumulative_perf' in r]
         daily_perf = [r['daily_perf'] for r in results if 'daily_perf' in r]
         capital_change_packets = \
-            [r['capital_change'] for r in results if 'capital_change' in r]
+                [r['capital_change'] for r in results if 'capital_change' in r]
 
         self.assertEqual(len(capital_change_packets), 1)
         self.assertEqual(
@@ -2083,32 +2077,24 @@ def order_stuff(context, data):
              'target': 151000.0 if change_type == 'target' else None,
              'delta': 50000.0})
 
-        # 1/03: price = 10, place orders
-        # 1/04: orders execute at price = 11, place orders
-        # 1/05: orders execute at price = 12, place orders
-        # 1/06: +50000 capital change,
-        #       orders execute at price = 13, place orders
-        # 1/09: orders execute at price = 14, place orders
-
-        expected_daily = {}
-
         expected_capital_changes = np.array([
             0.0, 0.0, 0.0, 50000.0, 0.0
         ])
 
-        # Day 1, no transaction. Day 2, we transact, but the price of our stock
-        # does not change. Day 3, we start getting returns
-        expected_daily['returns'] = np.array([
-            0.0,
-            0.0,
-            # 1000 shares * gain of 1
-            (100000.0 + 1000.0) / 100000.0 - 1.0,
-            # 2000 shares * gain of 1, capital change of +50000
-            (151000.0 + 2000.0) / 151000.0 - 1.0,
-            # 3000 shares * gain of 1
-            (153000.0 + 3000.0) / 153000.0 - 1.0,
-        ])
-
+        expected_daily = {
+            'returns': np.array(
+                [
+                    0.0,
+                    0.0,
+                    # 1000 shares * gain of 1
+                    (100000.0 + 1000.0) / 100000.0 - 1.0,
+                    # 2000 shares * gain of 1, capital change of +50000
+                    (151000.0 + 2000.0) / 151000.0 - 1.0,
+                    # 3000 shares * gain of 1
+                    (153000.0 + 3000.0) / 153000.0 - 1.0,
+                ]
+            )
+        }
         expected_daily['pnl'] = np.array([
             0.0,
             0.0,
@@ -2126,13 +2112,13 @@ def order_stuff(context, data):
         ])
 
         expected_daily['ending_cash'] = \
-            np.array([100000.0] * 5) + \
-            np.cumsum(expected_capital_changes) + \
-            np.cumsum(expected_daily['capital_used'])
+                np.array([100000.0] * 5) + \
+                np.cumsum(expected_capital_changes) + \
+                np.cumsum(expected_daily['capital_used'])
 
         expected_daily['starting_cash'] = \
-            expected_daily['ending_cash'] - \
-            expected_daily['capital_used']
+                expected_daily['ending_cash'] - \
+                expected_daily['capital_used']
 
         expected_daily['starting_value'] = np.array([
             0.0,
@@ -2143,13 +2129,13 @@ def order_stuff(context, data):
         ])
 
         expected_daily['ending_value'] = \
-            expected_daily['starting_value'] + \
-            expected_daily['pnl'] - \
-            expected_daily['capital_used']
+                expected_daily['starting_value'] + \
+                expected_daily['pnl'] - \
+                expected_daily['capital_used']
 
         expected_daily['portfolio_value'] = \
-            expected_daily['ending_value'] + \
-            expected_daily['ending_cash']
+                expected_daily['ending_value'] + \
+                expected_daily['ending_cash']
 
         stats = [
             'returns', 'pnl', 'capital_used', 'starting_cash', 'ending_cash',
@@ -2160,11 +2146,9 @@ def order_stuff(context, data):
             'returns': np.cumprod(expected_daily['returns'] + 1) - 1,
             'pnl': np.cumsum(expected_daily['pnl']),
             'capital_used': np.cumsum(expected_daily['capital_used']),
-            'starting_cash':
-                np.repeat(expected_daily['starting_cash'][0:1], 5),
+            'starting_cash': np.repeat(expected_daily['starting_cash'][:1], 5),
             'ending_cash': expected_daily['ending_cash'],
-            'starting_value':
-                np.repeat(expected_daily['starting_value'][0:1], 5),
+            'starting_value': np.repeat(expected_daily['starting_value'][:1], 5),
             'ending_value': expected_daily['ending_value'],
             'portfolio_value': expected_daily['portfolio_value'],
         }
@@ -2236,10 +2220,10 @@ def order_stuff(context, data):
         results = list(gen)
 
         cumulative_perf = \
-            [r['cumulative_perf'] for r in results if 'cumulative_perf' in r]
+                [r['cumulative_perf'] for r in results if 'cumulative_perf' in r]
         daily_perf = [r['daily_perf'] for r in results if 'daily_perf' in r]
         capital_change_packets = \
-            [r['capital_change'] for r in results if 'capital_change' in r]
+                [r['capital_change'] for r in results if 'capital_change' in r]
 
         self.assertEqual(len(capital_change_packets), len(capital_changes))
         expected = [
@@ -2249,14 +2233,6 @@ def order_stuff(context, data):
              'delta': 1000.0 if len(values) == 1 else 500.0}
             for val in values]
         self.assertEqual(capital_change_packets, expected)
-
-        # 1/03: place orders at price = 100, execute at 101
-        # 1/04: place orders at price = 490, execute at 491,
-        #       +500 capital change at 17:00 and 18:00 (intraday)
-        #       or +1000 at 00:00 (interday),
-        # 1/05: place orders at price = 880, execute at 881
-
-        expected_daily = {}
 
         expected_capital_changes = np.array([0.0, 1000.0, 0.0])
 
@@ -2272,14 +2248,17 @@ def order_stuff(context, data):
             # Fills at 491, ends day at 879, capital change +1000
             day2_return = (2388.0 + 390.0 + 388.0) / 2388.0 - 1
 
-        expected_daily['returns'] = np.array([
-            # Fills at 101, ends day at 489
-            (1000.0 + 489 - 101) / 1000.0 - 1.0,
-            day2_return,
-            # Fills at 881, ends day at 1269
-            (3166.0 + 390.0 + 390.0 + 388.0) / 3166.0 - 1.0,
-        ])
-
+        expected_daily = {
+            'returns': np.array(
+                [
+                    # Fills at 101, ends day at 489
+                    (1000.0 + 489 - 101) / 1000.0 - 1.0,
+                    day2_return,
+                    # Fills at 881, ends day at 1269
+                    (3166.0 + 390.0 + 390.0 + 388.0) / 3166.0 - 1.0,
+                ]
+            )
+        }
         expected_daily['pnl'] = np.array([
             388.0,
             390.0 + 388.0,
@@ -2291,13 +2270,13 @@ def order_stuff(context, data):
         ])
 
         expected_daily['ending_cash'] = \
-            np.array([1000.0] * 3) + \
-            np.cumsum(expected_capital_changes) + \
-            np.cumsum(expected_daily['capital_used'])
+                np.array([1000.0] * 3) + \
+                np.cumsum(expected_capital_changes) + \
+                np.cumsum(expected_daily['capital_used'])
 
         expected_daily['starting_cash'] = \
-            expected_daily['ending_cash'] - \
-            expected_daily['capital_used']
+                expected_daily['ending_cash'] - \
+                expected_daily['capital_used']
 
         if change_loc == 'intraday':
             # Capital changes come after day start
@@ -2308,13 +2287,13 @@ def order_stuff(context, data):
         ])
 
         expected_daily['ending_value'] = \
-            expected_daily['starting_value'] + \
-            expected_daily['pnl'] - \
-            expected_daily['capital_used']
+                expected_daily['starting_value'] + \
+                expected_daily['pnl'] - \
+                expected_daily['capital_used']
 
         expected_daily['portfolio_value'] = \
-            expected_daily['ending_value'] + \
-            expected_daily['ending_cash']
+                expected_daily['ending_value'] + \
+                expected_daily['ending_cash']
 
         stats = [
             'returns', 'pnl', 'capital_used', 'starting_cash', 'ending_cash',
@@ -2325,11 +2304,9 @@ def order_stuff(context, data):
             'returns': np.cumprod(expected_daily['returns'] + 1) - 1,
             'pnl': np.cumsum(expected_daily['pnl']),
             'capital_used': np.cumsum(expected_daily['capital_used']),
-            'starting_cash':
-                np.repeat(expected_daily['starting_cash'][0:1], 3),
+            'starting_cash': np.repeat(expected_daily['starting_cash'][:1], 3),
             'ending_cash': expected_daily['ending_cash'],
-            'starting_value':
-                np.repeat(expected_daily['starting_value'][0:1], 3),
+            'starting_value': np.repeat(expected_daily['starting_value'][:1], 3),
             'ending_value': expected_daily['ending_value'],
             'portfolio_value': expected_daily['portfolio_value'],
         }
@@ -2402,11 +2379,11 @@ def order_stuff(context, data):
         results = list(gen)
 
         cumulative_perf = \
-            [r['cumulative_perf'] for r in results if 'cumulative_perf' in r]
+                [r['cumulative_perf'] for r in results if 'cumulative_perf' in r]
         minute_perf = [r['minute_perf'] for r in results if 'minute_perf' in r]
         daily_perf = [r['daily_perf'] for r in results if 'daily_perf' in r]
         capital_change_packets = \
-            [r['capital_change'] for r in results if 'capital_change' in r]
+                [r['capital_change'] for r in results if 'capital_change' in r]
 
         self.assertEqual(len(capital_change_packets), len(capital_changes))
         expected = [
@@ -2417,28 +2394,19 @@ def order_stuff(context, data):
             for val in values]
         self.assertEqual(capital_change_packets, expected)
 
-        # 1/03: place orders at price = 100, execute at 101
-        # 1/04: place orders at price = 490, execute at 491,
-        #       +500 capital change at 17:00 and 18:00 (intraday)
-        #       or +1000 at 00:00 (interday),
-        # 1/05: place orders at price = 880, execute at 881
-
-        # Minute perfs are cumulative for the day
-        expected_minute = {}
-
         capital_changes_after_start = np.array([0.0] * 1170)
         if change_loc == 'intraday':
             capital_changes_after_start[539:599] = 500.0
             capital_changes_after_start[599:780] = 1000.0
 
-        expected_minute['pnl'] = np.array([0.0] * 1170)
+        expected_minute = {'pnl': np.array([0.0] * 1170)}
         expected_minute['pnl'][:2] = 0.0
         expected_minute['pnl'][2:392] = 1.0
         expected_minute['pnl'][392:782] = 2.0
         expected_minute['pnl'][782:] = 3.0
         for start, end in ((0, 390), (390, 780), (780, 1170)):
             expected_minute['pnl'][start:end] = \
-                np.cumsum(expected_minute['pnl'][start:end])
+                    np.cumsum(expected_minute['pnl'][start:end])
 
         expected_minute['capital_used'] = np.concatenate((
             [0.0] * 1, [-101.0] * 389,
@@ -2458,9 +2426,9 @@ def order_stuff(context, data):
         ))
 
         expected_minute['ending_cash'] = \
-            expected_minute['starting_cash'] + \
-            expected_minute['capital_used'] + \
-            capital_changes_after_start
+                expected_minute['starting_cash'] + \
+                expected_minute['capital_used'] + \
+                capital_changes_after_start
 
         expected_minute['starting_value'] = np.concatenate((
             [0.0] * 390,
@@ -2469,17 +2437,17 @@ def order_stuff(context, data):
         ))
 
         expected_minute['ending_value'] = \
-            expected_minute['starting_value'] + \
-            expected_minute['pnl'] - \
-            expected_minute['capital_used']
+                expected_minute['starting_value'] + \
+                expected_minute['pnl'] - \
+                expected_minute['capital_used']
 
         expected_minute['portfolio_value'] = \
-            expected_minute['ending_value'] + \
-            expected_minute['ending_cash']
+                expected_minute['ending_value'] + \
+                expected_minute['ending_cash']
 
         expected_minute['returns'] = \
-            expected_minute['pnl'] / \
-            (expected_minute['starting_value'] +
+                expected_minute['pnl'] / \
+                (expected_minute['starting_value'] +
              expected_minute['starting_cash'])
 
         # If the change is interday, we can just calculate the returns from
@@ -2492,36 +2460,36 @@ def order_stuff(context, data):
 
             # From 1/04 17:00 to 17:59
             cur_subperiod_pnl = \
-                expected_minute['pnl'][539:599] - expected_minute['pnl'][538]
+                    expected_minute['pnl'][539:599] - expected_minute['pnl'][538]
             cur_subperiod_starting_value = \
-                np.array([expected_minute['ending_value'][538]] * 60)
+                    np.array([expected_minute['ending_value'][538]] * 60)
             cur_subperiod_starting_cash = \
-                np.array([expected_minute['ending_cash'][538] + 500] * 60)
+                    np.array([expected_minute['ending_cash'][538] + 500] * 60)
 
             cur_subperiod_returns = cur_subperiod_pnl / \
-                (cur_subperiod_starting_value + cur_subperiod_starting_cash)
+                    (cur_subperiod_starting_value + cur_subperiod_starting_cash)
             expected_minute['returns'][539:599] = \
-                (cur_subperiod_returns + 1.0) * \
-                (prev_subperiod_return + 1.0) - \
-                1.0
+                    (cur_subperiod_returns + 1.0) * \
+                    (prev_subperiod_return + 1.0) - \
+                    1.0
 
             # The last packet (at 1/04 17:59) before the second capital change
             prev_subperiod_return = expected_minute['returns'][598]
 
             # From 1/04 18:00 to 21:00
             cur_subperiod_pnl = \
-                expected_minute['pnl'][599:780] - expected_minute['pnl'][598]
+                    expected_minute['pnl'][599:780] - expected_minute['pnl'][598]
             cur_subperiod_starting_value = \
-                np.array([expected_minute['ending_value'][598]] * 181)
+                    np.array([expected_minute['ending_value'][598]] * 181)
             cur_subperiod_starting_cash = \
-                np.array([expected_minute['ending_cash'][598] + 500] * 181)
+                    np.array([expected_minute['ending_cash'][598] + 500] * 181)
 
             cur_subperiod_returns = cur_subperiod_pnl / \
-                (cur_subperiod_starting_value + cur_subperiod_starting_cash)
+                    (cur_subperiod_starting_value + cur_subperiod_starting_cash)
             expected_minute['returns'][599:780] = \
-                (cur_subperiod_returns + 1.0) * \
-                (prev_subperiod_return + 1.0) - \
-                1.0
+                    (cur_subperiod_returns + 1.0) * \
+                    (prev_subperiod_return + 1.0) - \
+                    1.0
 
         # The last minute packet of each day
         expected_daily = {
@@ -2539,27 +2507,29 @@ def order_stuff(context, data):
         # "Add" daily return from 1/03 to minute returns on 1/04 and 1/05
         # "Add" daily return from 1/04 to minute returns on 1/05
         expected_cumulative['returns'][390:] = \
-            (expected_cumulative['returns'][390:] + 1) * \
-            (expected_daily['returns'][0] + 1) - 1
+                (expected_cumulative['returns'][390:] + 1) * \
+                (expected_daily['returns'][0] + 1) - 1
         expected_cumulative['returns'][780:] = \
-            (expected_cumulative['returns'][780:] + 1) * \
-            (expected_daily['returns'][1] + 1) - 1
+                (expected_cumulative['returns'][780:] + 1) * \
+                (expected_daily['returns'][1] + 1) - 1
 
         # Add daily pnl/capital_used from 1/03 to 1/04 and 1/05
         # Add daily pnl/capital_used from 1/04 to 1/05
         expected_cumulative['pnl'][390:] += expected_daily['pnl'][0]
         expected_cumulative['pnl'][780:] += expected_daily['pnl'][1]
         expected_cumulative['capital_used'][390:] += \
-            expected_daily['capital_used'][0]
+                expected_daily['capital_used'][0]
         expected_cumulative['capital_used'][780:] += \
-            expected_daily['capital_used'][1]
+                expected_daily['capital_used'][1]
 
         # starting_cash, starting_value are same as those of the first daily
         # packet
-        expected_cumulative['starting_cash'] = \
-            np.repeat(expected_daily['starting_cash'][0:1], 1170)
-        expected_cumulative['starting_value'] = \
-            np.repeat(expected_daily['starting_value'][0:1], 1170)
+        expected_cumulative['starting_cash'] = np.repeat(
+            expected_daily['starting_cash'][:1], 1170
+        )
+        expected_cumulative['starting_value'] = np.repeat(
+            expected_daily['starting_value'][:1], 1170
+        )
 
         # extra cumulative packet per day from the daily packet
         for stat in stats:
@@ -3004,7 +2974,7 @@ class TestTradingControls(zf.WithMakeAlgo,
         # Order 5 times twice in a single day, and set a max order count of
         # 9. The last order of the second batch should fail.
         def handle_data(algo, data):
-            if algo.minute_count == 0 or algo.minute_count == 100:
+            if algo.minute_count in [0, 100]:
                 for i in range(5):
                     algo.order(self.asset, 1)
                     algo.order_count += 1

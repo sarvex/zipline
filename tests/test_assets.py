@@ -575,7 +575,7 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
         )
 
         # we do it twice to catch caching bugs
-        for i in range(2):
+        for _ in range(2):
             with self.assertRaises(SymbolNotFound):
                 finder.lookup_symbol('TEST', as_of)
             with self.assertRaises(SymbolNotFound):
@@ -586,10 +586,7 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
 
             # Adding an unnecessary fuzzy shouldn't matter.
             for fuzzy_char in ['-', '/', '_', '.']:
-                self.assertEqual(
-                    asset_1,
-                    finder.lookup_symbol('TEST%s1' % fuzzy_char, as_of)
-                )
+                self.assertEqual(asset_1, finder.lookup_symbol(f'TEST{fuzzy_char}1', as_of))
 
     def test_lookup_symbol_fuzzy(self):
         metadata = pd.DataFrame.from_records([
@@ -1143,9 +1140,7 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
                     sids_by_country[country_code]
                     for country_code in country_codes
                 )))
-                permuted_sids = [
-                    sid for sid in sorted(expected_sids, key=permute_sid)
-                ]
+                permuted_sids = list(sorted(expected_sids, key=permute_sid))
                 tile_count = len(country_codes) + ('US' in country_codes)
                 expected_with_start = pd.DataFrame(
                     data=np.tile(
@@ -1267,13 +1262,7 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
         self.assertEqual(asset_1.sid, 1)
 
         # We don't know about this ALT_ID yet.
-        with self.assertRaisesRegex(
-            ValueNotFoundForField,
-            "Value '{}' was not found for field '{}'.".format(
-                '100000002',
-                'ALT_ID',
-            )
-        ):
+        with self.assertRaisesRegex(ValueNotFoundForField, "Value '100000002' was not found for field 'ALT_ID'."):
             af.lookup_by_supplementary_field('ALT_ID', '100000002', dt)
 
         # After all assets have ended.
@@ -1290,9 +1279,7 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
 
         # At this point both sids 0 and 2 have held this value, so an
         # as_of_date is required.
-        expected_in_repr = (
-            "Multiple occurrences of the value '{}' found for field '{}'."
-        ).format('100000000', 'ALT_ID')
+        expected_in_repr = "Multiple occurrences of the value '100000000' found for field 'ALT_ID'."
 
         with self.assertRaisesRegex(
             MultipleValuesFoundForField,
@@ -1377,10 +1364,7 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
 
         # Since sid 2 has not yet started, we don't know about its
         # ALT_ID.
-        with self.assertRaisesRegex(
-            NoValueForSid,
-            "No '{}' value found for sid '{}'.".format('ALT_ID', 2),
-        ):
+        with self.assertRaisesRegex(NoValueForSid, "No 'ALT_ID' value found for sid '2'."):
             finder.get_supplementary_field(2, 'ALT_ID', dt),
 
         # After all assets have ended.
@@ -1395,10 +1379,7 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
             )
 
         # Sid 0 has historically held two values for ALT_ID by this dt.
-        with self.assertRaisesRegex(
-            MultipleValuesFoundForSid,
-            "Multiple '{}' values found for sid '{}'.".format('ALT_ID', 0),
-        ):
+        with self.assertRaisesRegex(MultipleValuesFoundForSid, "Multiple 'ALT_ID' values found for sid '0'."):
             finder.get_supplementary_field(0, 'ALT_ID', None),
 
     def test_group_by_type(self):
@@ -1527,11 +1508,9 @@ class AssetFinderTestCase(WithTradingCalendars, ZiplineTestCase):
                 list(map(type, results)),
             )
             self.assertEqual(
-                (
-                    list(equities.symbol.loc[equity_sids]) +
-                    list(futures.symbol.loc[future_sids])
-                ),
-                list(asset.symbol for asset in results),
+                list(equities.symbol.loc[equity_sids])
+                + list(futures.symbol.loc[future_sids]),
+                [asset.symbol for asset in results],
             )
 
     @parameterized.expand([
@@ -1620,7 +1599,7 @@ class AssetFinderMultipleCountries(WithTradingCalendars, ZiplineTestCase):
 
             # Adding an unnecessary delimiter shouldn't matter.
             for delimiter in '-', '/', '_', '.':
-                ticker = 'TEST%sA' % delimiter
+                ticker = f'TEST{delimiter}A'
                 with self.assertRaises(SameSymbolUsedAcrossCountries):
                     finder.lookup_symbol(ticker, as_of)
 

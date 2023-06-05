@@ -535,9 +535,7 @@ class AssetFinder(object):
 
         # We shouldn't know about any other asset types.
         if type_to_assets:
-            raise AssertionError(
-                "Found asset types: %s" % list(type_to_assets.keys())
-            )
+            raise AssertionError(f"Found asset types: {list(type_to_assets.keys())}")
 
         return [hits[sid] for sid in sids]
 
@@ -730,12 +728,7 @@ class AssetFinder(object):
             asset = asset_type(**filter_kwargs(row))
             hits[sid] = cache[sid] = asset
 
-        # If we get here, it means something in our code thought that a
-        # particular sid was an equity/future and called this function with a
-        # concrete type, but we couldn't actually resolve the asset.  This is
-        # an error in our code, not a user-input error.
-        misses = tuple(set(sids) - viewkeys(hits))
-        if misses:
+        if misses := tuple(set(sids) - viewkeys(hits)):
             if querying_equities:
                 raise EquitiesNotFound(sids=misses)
             else:
@@ -844,13 +837,10 @@ class AssetFinder(object):
                 # find the equity that owned it on the given asof date
                 asset = self.retrieve_asset(sid)
 
-                # if this asset owned the symbol on this asof date and we are
-                # only searching one country, return that asset
                 if not multi_country:
                     return asset
-                else:
-                    options.append(asset)
-                    country_codes.append(asset.country_code)
+                options.append(asset)
+                country_codes.append(asset.country_code)
 
         if not options:
             # no equity held the ticker on the given asof date
@@ -886,12 +876,11 @@ class AssetFinder(object):
                 # only one valid match
                 return self.retrieve_asset(owners[0].sid)
 
-            options = []
-            for _, _, sid, sym in owners:
-                if sym == symbol:
-                    # there are multiple options, look for exact matches
-                    options.append(self.retrieve_asset(sid))
-
+            options = [
+                self.retrieve_asset(sid)
+                for _, _, sid, sym in owners
+                if sym == symbol
+            ]
             if len(options) == 1:
                 # there was only one exact match
                 return options[0]
@@ -902,12 +891,11 @@ class AssetFinder(object):
                 options=self.retrieve_all(owner.sid for owner in owners),
             )
 
-        options = {}
-        for start, end, sid, sym in owners:
-            if start <= as_of_date < end:
-                # see which fuzzy symbols were owned on the asof date.
-                options[sid] = sym
-
+        options = {
+            sid: sym
+            for start, end, sid, sym in owners
+            if start <= as_of_date < end
+        }
         if not options:
             # no equity owned the fuzzy symbol on the date requested
             raise SymbolNotFound(symbol=symbol)
@@ -1099,13 +1087,14 @@ class AssetFinder(object):
 
         """
 
-        data = self._select_asset_by_symbol(self.futures_contracts, symbol)\
-                   .execute().fetchone()
-
-        # If no data found, raise an exception
-        if not data:
+        if (
+            data := self._select_asset_by_symbol(self.futures_contracts, symbol)
+            .execute()
+            .fetchone()
+        ):
+            return self.retrieve_asset(data['sid'])
+        else:
             raise SymbolNotFound(symbol=symbol)
-        return self.retrieve_asset(data['sid'])
 
     def lookup_by_supplementary_field(self, field_name, value, as_of_date):
         try:
@@ -1345,7 +1334,7 @@ class AssetFinder(object):
                 except SymbolNotFound:
                     return None
 
-        raise NotAssetConvertible("Input was %s, not AssetConvertible." % obj)
+        raise NotAssetConvertible(f"Input was {obj}, not AssetConvertible.")
 
     def lookup_generic(self, obj, as_of_date, country_code):
         """
@@ -1421,17 +1410,23 @@ class AssetFinder(object):
         Compute and cache a recarray of asset lifetimes.
         """
         sids = starts = ends = []
-        equities_cols = self.equities.c
         if country_codes:
-            results = sa.select((
-                equities_cols.sid,
-                equities_cols.start_date,
-                equities_cols.end_date,
-            )).where(
-                (self.exchanges.c.exchange == equities_cols.exchange) &
-                (self.exchanges.c.country_code.in_(country_codes))
-            ).execute().fetchall()
-            if results:
+            equities_cols = self.equities.c
+            if (
+                results := sa.select(
+                    (
+                        equities_cols.sid,
+                        equities_cols.start_date,
+                        equities_cols.end_date,
+                    )
+                )
+                .where(
+                    (self.exchanges.c.exchange == equities_cols.exchange)
+                    & (self.exchanges.c.country_code.in_(country_codes))
+                )
+                .execute()
+                .fetchall()
+            ):
                 sids, starts, ends = zip(*results)
 
         sid = np.array(sids, dtype='i8')

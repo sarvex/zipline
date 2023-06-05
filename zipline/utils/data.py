@@ -96,13 +96,12 @@ class RollingPanel(object):
         self.buffer = self.buffer.reindex(items=self.items)
 
     def _create_buffer(self):
-        panel = pd.Panel(
+        return pd.Panel(
             items=self.items,
             minor_axis=self.minor_axis,
             major_axis=range(self.cap),
             dtype=self.dtype,
         )
-        return panel
 
     def extend_back(self, missing_dts):
         """
@@ -181,9 +180,7 @@ class RollingPanel(object):
         def convert_datelike_to_long(dt):
             if isinstance(dt, pd.Timestamp):
                 return dt.asm8
-            if isinstance(dt, datetime.datetime):
-                return np.datetime64(dt)
-            return dt
+            return np.datetime64(dt) if isinstance(dt, datetime.datetime) else dt
 
         # constrict further by date
         if start:
@@ -283,13 +280,12 @@ class MutableIndexRollingPanel(object):
         self.buffer = self.buffer.reindex(minor_axis=self.minor_axis)
 
     def _create_buffer(self):
-        panel = pd.Panel(
+        return pd.Panel(
             items=self.items,
             minor_axis=self.minor_axis,
             major_axis=range(self.cap),
             dtype=self.dtype,
         )
-        return panel
 
     def get_current(self):
         """

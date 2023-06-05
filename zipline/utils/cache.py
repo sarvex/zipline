@@ -121,11 +121,7 @@ class ExpiringCache(object):
     """
 
     def __init__(self, cache=None, cleanup=lambda value_to_clean: None):
-        if cache is not None:
-            self._cache = cache
-        else:
-            self._cache = {}
-
+        self._cache = cache if cache is not None else {}
         self.cleanup = cleanup
 
     def get(self, key, dt):

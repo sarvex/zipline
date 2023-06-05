@@ -52,8 +52,6 @@ def canonicalize_datetime(dt):
 
 
 def get_non_trading_days(start, end):
-    non_trading_rules = []
-
     start = canonicalize_datetime(start)
     end = canonicalize_datetime(end)
 
@@ -64,8 +62,7 @@ def get_non_trading_days(start, end):
         dtstart=start,
         until=end
     )
-    non_trading_rules.append(weekends)
-
+    non_trading_rules = [weekends]
     new_years = rrule.rrule(
         rrule.MONTHLY,
         byyearday=1,
@@ -293,11 +290,6 @@ def get_early_closes(start, end):
     start = max(start, datetime(1993, 1, 1, tzinfo=pytz.utc))
     end = max(end, datetime(1993, 1, 1, tzinfo=pytz.utc))
 
-    # Not included here are early closes prior to 1993
-    # or unplanned early closes
-
-    early_close_rules = []
-
     day_after_thanksgiving = rrule.rrule(
         rrule.MONTHLY,
         bymonth=11,
@@ -309,8 +301,7 @@ def get_early_closes(start, end):
         dtstart=start,
         until=end
     )
-    early_close_rules.append(day_after_thanksgiving)
-
+    early_close_rules = [day_after_thanksgiving]
     christmas_eve = rrule.rrule(
         rrule.MONTHLY,
         bymonth=12,
@@ -380,7 +371,7 @@ def get_early_closes(start, end):
     #
     # New Year's Eve
     nye_1999 = datetime(1999, 12, 31, tzinfo=pytz.utc)
-    if start <= nye_1999 and nye_1999 <= end:
+    if start <= nye_1999 <= end:
         early_closes.append(nye_1999)
 
     early_closes.sort()

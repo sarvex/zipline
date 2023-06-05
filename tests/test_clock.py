@@ -52,8 +52,8 @@ class TestClock(TestCase):
 
         _check_session_bts_first(
             self.sessions[0],
-            all_events[0:393],
-            pd.Timestamp("2016-07-15 6:17", tz='US/Eastern')
+            all_events[:393],
+            pd.Timestamp("2016-07-15 6:17", tz='US/Eastern'),
         )
 
         _check_session_bts_first(
@@ -130,9 +130,7 @@ class TestClock(TestCase):
         all_events = list(clock)
 
         _check_session_bts_during(
-            self.sessions[0],
-            all_events[0:393],
-            bts_session_times[0]
+            self.sessions[0], all_events[:393], bts_session_times[0]
         )
 
         _check_session_bts_during(

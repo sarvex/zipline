@@ -252,10 +252,7 @@ class ProgressModel(object):
 
     def finish(self, success):
         self._end_time = time.time()
-        if success:
-            self._state = 'success'
-        else:
-            self._state = 'error'
+        self._state = 'success' if success else 'error'
 
     def _finish_terms(self, nterms):
         self._progress += nterms * self._completed_term_increment
@@ -299,8 +296,7 @@ class IPythonWidgetProgressPublisher(object):
 
         if missing:
             raise ValueError(
-                "IPythonWidgetProgressPublisher needs ipywidgets and IPython:"
-                "\nMissing:\n{}".format(bulleted_list(missing))
+                f"IPythonWidgetProgressPublisher needs ipywidgets and IPython:\nMissing:\n{bulleted_list(missing)}"
             )
 
         # Heading for progress display.
@@ -318,8 +314,7 @@ class IPythonWidgetProgressPublisher(object):
             min=0.0,
             max=100.0,
             bar_style='info',
-            # Leave enough space for the percent indicator.
-            layout={'width': 'calc(100% - {})'.format(indicator_width)},
+            layout={'width': f'calc(100% - {indicator_width})'},
         )
         bar_and_percent = ipywidgets.HBox([self._percent_indicator, self._bar])
 
@@ -366,10 +361,7 @@ class IPythonWidgetProgressPublisher(object):
             self._details_body.value = details_heading + term_list
 
             chunk_start, chunk_end = model.current_chunk_bounds
-            self._heading.value = (
-                "<b>Running Pipeline</b>: Chunk Start={}, Chunk End={}"
-                .format(chunk_start.date(), chunk_end.date())
-            )
+            self._heading.value = f"<b>Running Pipeline</b>: Chunk Start={chunk_start.date()}, Chunk End={chunk_end.date()}"
 
             self._set_progress(model.percent_complete)
 
@@ -379,9 +371,9 @@ class IPythonWidgetProgressPublisher(object):
             # Replace widget layout with html that can be persisted.
             self._stop_displaying()
             display(
-                IPython_HTML("<b>Pipeline Execution Time:</b> {}".format(
-                    self._format_execution_time(model.execution_time)
-                )),
+                IPython_HTML(
+                    f"<b>Pipeline Execution Time:</b> {self._format_execution_time(model.execution_time)}"
+                )
             )
 
         elif model.state == 'error':
@@ -401,11 +393,10 @@ class IPythonWidgetProgressPublisher(object):
 
     @staticmethod
     def _render_term_list(terms):
-        list_elements = ''.join([
-             '<li><pre>{}</pre></li>'.format(repr_htmlsafe(t))
-             for t in terms
-        ])
-        return '<ul>{}</ul>'.format(list_elements)
+        list_elements = ''.join(
+            [f'<li><pre>{repr_htmlsafe(t)}</pre></li>' for t in terms]
+        )
+        return f'<ul>{list_elements}</ul>'
 
     def _set_progress(self, percent_complete):
         self._bar.value = percent_complete
@@ -428,9 +419,7 @@ class IPythonWidgetProgressPublisher(object):
             User-facing text representation of elapsed time.
         """
         def maybe_s(n):
-            if n == 1:
-                return ''
-            return 's'
+            return '' if n == 1 else 's'
 
         minutes, seconds = divmod(total_seconds, 60)
         minutes = int(minutes)
@@ -487,6 +476,6 @@ def repr_htmlsafe(t):
     try:
         r = repr(t)
     except Exception:
-        r = "(Error Displaying {})".format(type(t).__name__)
+        r = f"(Error Displaying {type(t).__name__})"
 
-    return escape_html(str(r), quote=True)
+    return escape_html(r, quote=True)

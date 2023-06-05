@@ -113,18 +113,18 @@ def csvdir_bundle(environ,
     """
     if not csvdir:
         csvdir = environ.get('CSVDIR')
-        if not csvdir:
-            raise ValueError("CSVDIR environment variable is not set")
+    if not csvdir:
+        raise ValueError("CSVDIR environment variable is not set")
 
     if not os.path.isdir(csvdir):
-        raise ValueError("%s is not a directory" % csvdir)
+        raise ValueError(f"{csvdir} is not a directory")
 
     if not tframes:
-        tframes = set(["daily", "minute"]).intersection(os.listdir(csvdir))
+        tframes = {"daily", "minute"}.intersection(os.listdir(csvdir))
 
-        if not tframes:
-            raise ValueError("'daily' and 'minute' directories "
-                             "not found in '%s'" % csvdir)
+    if not tframes:
+        raise ValueError("'daily' and 'minute' directories "
+                         "not found in '%s'" % csvdir)
 
     divs_splits = {'divs': DataFrame(columns=['sid', 'amount',
                                               'ex_date', 'record_date',
@@ -138,7 +138,7 @@ def csvdir_bundle(environ,
                          for item in os.listdir(ddir)
                          if '.csv' in item)
         if not symbols:
-            raise ValueError("no <symbol>.csv* files found in %s" % ddir)
+            raise ValueError(f"no <symbol>.csv* files found in {ddir}")
 
         dtype = [('start_date', 'datetime64[ns]'),
                  ('end_date', 'datetime64[ns]'),
@@ -146,11 +146,7 @@ def csvdir_bundle(environ,
                  ('symbol', 'object')]
         metadata = DataFrame(empty(len(symbols), dtype=dtype))
 
-        if tframe == 'minute':
-            writer = minute_bar_writer
-        else:
-            writer = daily_bar_writer
-
+        writer = minute_bar_writer if tframe == 'minute' else daily_bar_writer
         writer.write(_pricing_iter(ddir, symbols, metadata,
                      divs_splits, show_progress),
                      show_progress=show_progress)
@@ -170,16 +166,15 @@ def csvdir_bundle(environ,
 
 def _pricing_iter(csvdir, symbols, metadata, divs_splits, show_progress):
     with maybe_show_progress(symbols, show_progress,
-                             label='Loading custom pricing data: ') as it:
+                                 label='Loading custom pricing data: ') as it:
         files = os.listdir(csvdir)
         for sid, symbol in enumerate(it):
-            logger.debug('%s: sid %s' % (symbol, sid))
+            logger.debug(f'{symbol}: sid {sid}')
 
             try:
-                fname = [fname for fname in files
-                         if '%s.csv' % symbol in fname][0]
+                fname = [fname for fname in files if f'{symbol}.csv' in fname][0]
             except IndexError:
-                raise ValueError("%s.csv file is not in %s" % (symbol, csvdir))
+                raise ValueError(f"{symbol}.csv file is not in {csvdir}")
 
             dfr = read_csv(os.path.join(csvdir, fname),
                            parse_dates=[0],

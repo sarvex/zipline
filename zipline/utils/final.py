@@ -13,8 +13,7 @@ def bases_mro(bases):
     base classes of an object.
     """
     for base in bases:
-        for class_ in base.__mro__:
-            yield class_
+        yield from base.__mro__
 
 
 def is_final(name, mro):
@@ -32,7 +31,7 @@ class FinalMeta(type):
     """A metaclass template for classes the want to prevent subclassess from
     overriding a some methods or attributes.
     """
-    def __new__(mcls, name, bases, dict_):
+    def __new__(cls, name, bases, dict_):
         for k, v in iteritems(dict_):
             if is_final(k, bases):
                 raise _type_error
@@ -45,12 +44,12 @@ class FinalMeta(type):
             setattr_ = bases[0].__setattr__
 
         if not is_final('__setattr__', bases) \
-           and not isinstance(setattr_, final):
+               and not isinstance(setattr_, final):
             # implicitly make the `__setattr__` a `final` object so that
             # users cannot just avoid the descriptor protocol.
             dict_['__setattr__'] = final(setattr_)
 
-        return super(FinalMeta, mcls).__new__(mcls, name, bases, dict_)
+        return super(FinalMeta, cls).__new__(cls, name, bases, dict_)
 
     def __setattr__(self, name, value):
         """This stops the `final` attributes from being reassigned on the

@@ -97,10 +97,7 @@ def _run(handle_data,
     # date parameter validation
     if trading_calendar.session_distance(start, end) < 1:
         raise _RunAlgoError(
-            'There are no trading days between %s and %s' % (
-                start.date(),
-                end.date(),
-            ),
+            f'There are no trading days between {start.date()} and {end.date()}'
         )
 
     benchmark_sid, benchmark_returns = benchmark_spec.resolve(
@@ -173,9 +170,7 @@ def _run(handle_data,
     def choose_loader(column):
         if column in USEquityPricing.columns:
             return pipeline_loader
-        raise ValueError(
-            "No PipelineLoader registered for column %s." % column
-        )
+        raise ValueError(f"No PipelineLoader registered for column {column}.")
 
     if isinstance(metrics_set, six.string_types):
         try:

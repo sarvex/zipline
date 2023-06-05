@@ -75,7 +75,7 @@ class Argument(namedtuple('Argument', ['name', 'default'])):
             return '='.join([str(self.name), str(self.default)])
 
     def __repr__(self):
-        return 'Argument(%s, %s)' % (repr(self.name), repr(self.default))
+        return f'Argument({repr(self.name)}, {repr(self.default)})'
 
     def _defaults_match(self, arg):
         return any(map(Argument.ignore_default, [self, arg])) \
@@ -249,10 +249,10 @@ class BadCallable(TypeError, AssertionError, ZiplineError):
             ', '.join(
                 chain(
                     (str(arg) for arg in self.args),
-                    ('*' + sa for sa in (self.starargs,) if sa is not None),
-                    ('**' + ka for ka in (self.kwargsname,) if ka is not None),
+                    (f'*{sa}' for sa in (self.starargs,) if sa is not None),
+                    (f'**{ka}' for ka in (self.kwargsname,) if ka is not None),
                 )
-            )
+            ),
         )
 
     @property
@@ -262,22 +262,22 @@ class BadCallable(TypeError, AssertionError, ZiplineError):
 
 class NoStarargs(BadCallable):
     def __str__(self):
-        return '%s does not allow for *args' % self.format_callable()
+        return f'{self.format_callable()} does not allow for *args'
 
 
 class UnexpectedStarargs(BadCallable):
     def __str__(self):
-        return '%s should not allow for *args' % self.format_callable()
+        return f'{self.format_callable()} should not allow for *args'
 
 
 class NoKwargs(BadCallable):
     def __str__(self):
-        return '%s does not allow for **kwargs' % self.format_callable()
+        return f'{self.format_callable()} does not allow for **kwargs'
 
 
 class UnexpectedKwargs(BadCallable):
     def __str__(self):
-        return '%s should not allow for **kwargs' % self.format_callable()
+        return f'{self.format_callable()} should not allow for **kwargs'
 
 
 class NotCallable(BadCallable):
@@ -288,7 +288,7 @@ class NotCallable(BadCallable):
         self.callable_ = callable_
 
     def __str__(self):
-        return '%s is not callable' % self.format_callable()
+        return f'{self.format_callable()} is not callable'
 
     def format_callable(self):
         try:
@@ -309,11 +309,7 @@ class NotEnoughArguments(BadCallable):
 
     def __str__(self):
         missing_args = list(map(str, self.missing_args))
-        return '%s is missing argument%s: %s' % (
-            self.format_callable(),
-            's' if len(missing_args) > 1 else '',
-            ', '.join(missing_args),
-        )
+        return f"{self.format_callable()} is missing argument{'s' if len(missing_args) > 1 else ''}: {', '.join(missing_args)}"
 
 
 class TooManyArguments(BadCallable):
@@ -321,7 +317,7 @@ class TooManyArguments(BadCallable):
     The callback cannot be called by passing the expected number of arguments.
     """
     def __str__(self):
-        return '%s accepts too many arguments' % self.format_callable()
+        return f'{self.format_callable()} accepts too many arguments'
 
 
 class MismatchedArguments(BadCallable):
@@ -329,4 +325,4 @@ class MismatchedArguments(BadCallable):
     The argument lists are of the same lengths, but not in the correct order.
     """
     def __str__(self):
-        return '%s accepts mismatched parameters' % self.format_callable()
+        return f'{self.format_callable()} accepts mismatched parameters'

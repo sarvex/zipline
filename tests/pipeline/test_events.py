@@ -409,7 +409,7 @@ class EventsLoaderTestCase(WithAssetFinder,
         )
         cls.ASSET_FINDER_EQUITY_SIDS = list(cls.raw_events['sid'].unique())
         cls.ASSET_FINDER_EQUITY_SYMBOLS = [
-            's' + str(n) for n in cls.ASSET_FINDER_EQUITY_SIDS
+            f's{str(n)}' for n in cls.ASSET_FINDER_EQUITY_SIDS
         ]
         super(EventsLoaderTestCase, cls).init_class_fixtures()
 
@@ -446,7 +446,7 @@ class EventsLoaderTestCase(WithAssetFinder,
                     self.trading_days,
                 )
             else:
-                raise AssertionError("Unexpected column %s." % c)
+                raise AssertionError(f"Unexpected column {c}.")
 
     @skipIf(new_pandas, skip_pipeline_new_pandas)
     def test_load_properly_forward_fills(self):
@@ -476,7 +476,7 @@ class EventsLoaderTestCase(WithAssetFinder,
                     dates,
                 )
             else:
-                raise AssertionError("Unexpected column %s." % c)
+                raise AssertionError(f"Unexpected column {c}.")
 
     def assert_result_contains_all_sids(self, results):
         assert_equal(

@@ -363,11 +363,7 @@ class Ledger(object):
         hold a value of ``np.nan``.
     """
     def __init__(self, trading_sessions, capital_base, data_frequency):
-        if len(trading_sessions):
-            start = trading_sessions[0]
-        else:
-            start = None
-
+        start = trading_sessions[0] if len(trading_sessions) else None
         # Have some fields of the portfolio changed? This should be accessed
         # through ``self._dirty_portfolio``
         self.__dirty_portfolio = False
@@ -587,11 +583,7 @@ class Ledger(object):
         """
         position_tracker = self.position_tracker
 
-        # Earn dividends whose ex_date is the next trading day. We need to
-        # check if we own any of these stocks so we know to pay them out when
-        # the pay date comes.
-        held_sids = set(position_tracker.positions)
-        if held_sids:
+        if held_sids := set(position_tracker.positions):
             cash_dividends = adjustment_reader.get_dividends_with_ex_date(
                 held_sids,
                 next_session,
@@ -724,11 +716,7 @@ class Ledger(object):
         portfolio.portfolio_value = end_value = portfolio.cash + position_value
 
         pnl = end_value - start_value
-        if start_value != 0:
-            returns = pnl / start_value
-        else:
-            returns = 0.0
-
+        returns = pnl / start_value if start_value != 0 else 0.0
         portfolio.pnl += pnl
         portfolio.returns = (
             (1 + portfolio.returns) *

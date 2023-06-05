@@ -292,15 +292,14 @@ class MinuteToDailyAggregationTestCase(WithBcolzEquityMinuteBarReader,
 
     @classmethod
     def make_futures_info(cls):
-        future_dict = {}
-
-        for future_sid in cls.ASSET_FINDER_FUTURE_SIDS:
-            future_dict[future_sid] = {
+        future_dict = {
+            future_sid: {
                 'multiplier': 1000,
                 'exchange': 'CMES',
-                'root_symbol': "ABC"
+                'root_symbol': "ABC",
             }
-
+            for future_sid in cls.ASSET_FINDER_FUTURE_SIDS
+        }
         return pd.DataFrame.from_dict(future_dict, orient='index')
 
     @classmethod
@@ -545,14 +544,12 @@ class TestMinuteToSession(WithEquityMinuteBarData,
 
     @classmethod
     def make_equity_minute_bar_data(cls):
-        for sid, frame in iteritems(EQUITY_CASES):
-            yield sid, frame
+        yield from iteritems(EQUITY_CASES)
 
     @classmethod
     def init_class_fixtures(cls):
         super(TestMinuteToSession, cls).init_class_fixtures()
-        cls.equity_frames = {
-            sid: frame for sid, frame in cls.make_equity_minute_bar_data()}
+        cls.equity_frames = dict(cls.make_equity_minute_bar_data())
 
     def test_minute_to_session(self):
         for sid in self.ASSET_FINDER_EQUITY_SIDS:
@@ -578,15 +575,14 @@ class TestResampleSessionBars(WithBcolzFutureMinuteBarReader,
 
     @classmethod
     def make_futures_info(cls):
-        future_dict = {}
-
-        for future_sid in cls.ASSET_FINDER_FUTURE_SIDS:
-            future_dict[future_sid] = {
+        future_dict = {
+            future_sid: {
                 'multiplier': 1000,
                 'exchange': 'CMES',
-                'root_symbol': "ABC"
+                'root_symbol': "ABC",
             }
-
+            for future_sid in cls.ASSET_FINDER_FUTURE_SIDS
+        }
         return pd.DataFrame.from_dict(future_dict, orient='index')
 
     @classmethod

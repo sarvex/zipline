@@ -633,11 +633,7 @@ class TestConstantPrice(WithConstantEquityMinuteBarData,
             )
 
         ones = pd.Series(1, index=self.closes)
-        if direction == 'long':
-            count_field = 'longs_count'
-        else:
-            count_field = 'shorts_count'
-
+        count_field = 'longs_count' if direction == 'long' else 'shorts_count'
         assert_equal(
             perf[count_field],
             ones,
@@ -1601,11 +1597,7 @@ class TestFixedReturns(WithMakeAlgo, WithWerror, ZiplineTestCase):
             )
 
         ones = pd.Series(1, index=self.equity_closes)
-        if direction == 'long':
-            count_field = 'longs_count'
-        else:
-            count_field = 'shorts_count'
-
+        count_field = 'longs_count' if direction == 'long' else 'shorts_count'
         assert_equal(
             perf[count_field],
             ones,
@@ -2019,11 +2011,7 @@ class TestFixedReturns(WithMakeAlgo, WithWerror, ZiplineTestCase):
             )
 
         ones = pd.Series(1, index=self.future_closes)
-        if direction == 'long':
-            count_field = 'longs_count'
-        else:
-            count_field = 'shorts_count'
-
+        count_field = 'longs_count' if direction == 'long' else 'shorts_count'
         assert_equal(
             perf[count_field],
             ones,

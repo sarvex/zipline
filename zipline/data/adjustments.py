@@ -75,13 +75,7 @@ SQLITE_STOCK_DIVIDEND_PAYOUT_COLUMN_DTYPES = {
 
 
 def specialize_any_integer(d):
-    out = {}
-    for k, v in six.iteritems(d):
-        if v is any_integer:
-            out[k] = int64_dtype
-        else:
-            out[k] = v
-    return out
+    return {k: int64_dtype if v is any_integer else v for k, v in six.iteritems(d)}
 
 
 class SQLiteAdjustmentReader(object):
@@ -210,8 +204,8 @@ class SQLiteAdjustmentReader(object):
         t = (sid,)
         c = self.conn.cursor()
         adjustments_for_sid = c.execute(
-            "SELECT effective_date, ratio FROM %s WHERE sid = ?" %
-            table_name, t).fetchall()
+            f"SELECT effective_date, ratio FROM {table_name} WHERE sid = ?", t
+        ).fetchall()
         c.close()
 
         return [[Timestamp(adjustment[0], unit='s', tz='UTC'), adjustment[1]]
@@ -311,10 +305,7 @@ class SQLiteAdjustmentReader(object):
         )
 
         result = pd.read_sql(
-            'select * from "{}"'.format(table_name),
-            self.conn,
-            index_col='index',
-            **kwargs
+            f'select * from "{table_name}"', self.conn, index_col='index', **kwargs
         ).rename_axis(None)
 
         if not len(result):
@@ -367,7 +358,7 @@ class SQLiteAdjustmentWriter(object):
             self.conn = sqlite3.connect(conn_or_path)
             self.uri = conn_or_path
         else:
-            raise TypeError("Unknown connection type %s" % type(conn_or_path))
+            raise TypeError(f"Unknown connection type {type(conn_or_path)}")
 
         self._equity_daily_bar_reader = equity_daily_bar_reader
 
@@ -420,10 +411,7 @@ class SQLiteAdjustmentWriter(object):
     def write_frame(self, tablename, frame):
         if tablename not in SQLITE_ADJUSTMENT_TABLENAMES:
             raise ValueError(
-                "Adjustment table %s not in %s" % (
-                    tablename,
-                    SQLITE_ADJUSTMENT_TABLENAMES,
-                )
+                f"Adjustment table {tablename} not in {SQLITE_ADJUSTMENT_TABLENAMES}"
             )
         if not (frame is None or frame.empty):
             frame = frame.copy()

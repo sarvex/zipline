@@ -262,7 +262,7 @@ class FinanceTestCase(zf.WithAssetFinder,
                 )
 
             if "default_slippage" not in params or \
-               not params["default_slippage"]:
+                   not params["default_slippage"]:
                 slippage_func = FixedBasisPointsSlippage()
             else:
                 slippage_func = None
@@ -271,11 +271,7 @@ class FinanceTestCase(zf.WithAssetFinder,
 
             start_date = sim_params.first_open
 
-            if alternate:
-                alternator = -1
-            else:
-                alternator = 1
-
+            alternator = -1 if alternate else 1
             tracker = MetricsTracker(
                 trading_calendar=self.trading_calendar,
                 first_session=sim_params.start_session,
@@ -289,11 +285,7 @@ class FinanceTestCase(zf.WithAssetFinder,
 
             # replicate what tradesim does by going through every minute or day
             # of the simulation and processing open orders each time
-            if sim_params.data_frequency == "minute":
-                ticks = minutes
-            else:
-                ticks = days
-
+            ticks = minutes if sim_params.data_frequency == "minute" else days
             transactions = []
 
             order_list = []

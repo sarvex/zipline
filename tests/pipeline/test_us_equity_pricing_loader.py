@@ -330,12 +330,8 @@ class USEquityPricingLoaderTestCase(WithAdjustmentReader,
         price_adjustments = {}
         volume_adjustments = {}
 
-        should_include_price_adjustments = (
-            adjustment_type == 'all' or adjustment_type == 'price'
-        )
-        should_include_volume_adjustments = (
-            adjustment_type == 'all' or adjustment_type == 'volume'
-        )
+        should_include_price_adjustments = adjustment_type in ['all', 'price']
+        should_include_volume_adjustments = adjustment_type in ['all', 'volume']
 
         query_days = self.calendar_days_between(start_date, end_date)
         start_loc = query_days.get_loc(start_date)
@@ -412,7 +408,7 @@ class USEquityPricingLoaderTestCase(WithAdjustmentReader,
             adjustment_type,
         )
 
-        if adjustment_type == 'all' or adjustment_type == 'price':
+        if adjustment_type in ['all', 'price']:
             expected_price_adjustments = expected_adjustments['price']
             for key in expected_price_adjustments:
                 price_adjustment = adjustments['price'][key]
@@ -424,7 +420,7 @@ class USEquityPricingLoaderTestCase(WithAdjustmentReader,
                     self.assertEqual(adj.last_col, expected.last_col)
                     assert_allclose(adj.value, expected.value)
 
-        if adjustment_type == 'all' or adjustment_type == 'volume':
+        if adjustment_type in ['all', 'volume']:
             expected_volume_adjustments = expected_adjustments['volume']
             for key in expected_volume_adjustments:
                 volume_adjustment = adjustments['volume'][key]

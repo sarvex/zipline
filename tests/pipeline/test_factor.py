@@ -126,11 +126,7 @@ def scipy_winsorize_with_nan_handling(array, limits):
     sorter = array.argsort()
     unsorter = sorter.argsort()  # argsorting a permutation gives its inverse!
 
-    if nancount:
-        sorted_non_nans = array[sorter][:-nancount]
-    else:
-        sorted_non_nans = array[sorter]
-
+    sorted_non_nans = array[sorter][:-nancount] if nancount else array[sorter]
     sorted_winsorized = np.hstack([
         scipy_winsorize(sorted_non_nans, limits).data,
         np.full(nancount, np.nan),
@@ -1711,14 +1707,7 @@ class SummaryTestCase(BaseUSEquityPipelineTestCase, ZiplineTestCase):
         }
 
         with ignore_nanwarnings():
-            if mask_mode == 'none':
-                # If we aren't masking, we should expect the results to see the
-                # -1s.
-                expected_input = with_minus_1s
-            else:
-                # If we are masking, we should expect the results to see NaNs.
-                expected_input = with_nans
-
+            expected_input = with_minus_1s if mask_mode == 'none' else with_nans
             expected = {
                 'mean': as_column(np.nanmean(expected_input, axis=1)),
                 'sum': as_column(np.nansum(expected_input, axis=1)),
@@ -1748,6 +1737,7 @@ class SummaryTestCase(BaseUSEquityPipelineTestCase, ZiplineTestCase):
 
     def test_repr(self):
 
+
         class MyFactor(CustomFactor):
             window_length = 1
             inputs = ()
@@ -1759,11 +1749,5 @@ class SummaryTestCase(BaseUSEquityPipelineTestCase, ZiplineTestCase):
 
         for method in summary_funcs.names:
             summarized = getattr(f, method)()
-            self.assertEqual(
-                repr(summarized),
-                "MyFactor().{}()".format(method),
-            )
-            self.assertEqual(
-                summarized.recursive_repr(),
-                "MyFactor().{}()".format(method),
-            )
+            self.assertEqual(repr(summarized), f"MyFactor().{method}()")
+            self.assertEqual(summarized.recursive_repr(), f"MyFactor().{method}()")

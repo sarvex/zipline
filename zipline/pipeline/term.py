@@ -508,10 +508,7 @@ class ComputableTerm(Term):
             # normalize to a tuple so that inputs is hashable.
             inputs = tuple(inputs)
 
-            # Make sure all our inputs are valid pipeline objects before trying
-            # to infer a domain.
-            non_terms = [t for t in inputs if not isinstance(t, Term)]
-            if non_terms:
+            if non_terms := [t for t in inputs if not isinstance(t, Term)]:
                 raise NonPipelineInputs(cls.__name__, non_terms)
 
             if domain is NotSpecified:
@@ -572,8 +569,7 @@ class ComputableTerm(Term):
 
         if not isinstance(self.domain, Domain):
             raise TypeError(
-                "Expected {}.domain to be an instance of Domain, "
-                "but got {}.".format(type(self).__name__, type(self.domain))
+                f"Expected {type(self).__name__}.domain to be an instance of Domain, but got {type(self.domain)}."
             )
 
         # Check outputs.
@@ -668,9 +664,7 @@ class ComputableTerm(Term):
         term.
         """
         extra_input_rows = max(0, self.window_length - 1)
-        out = {}
-        for term in self.inputs:
-            out[term] = extra_input_rows
+        out = {term: extra_input_rows for term in self.inputs}
         out[self.mask] = 0
         return out
 
@@ -764,12 +758,7 @@ class ComputableTerm(Term):
 
         from .filters import NullFilter
 
-        if self.dtype == float64_dtype:
-            # Using isnan is more efficient when possible because we can fold
-            # the isnan computation with other NumExpr expressions.
-            return self.isnan()
-        else:
-            return NullFilter(self)
+        return self.isnan() if self.dtype == float64_dtype else NullFilter(self)
 
     def notnull(self):
         """
@@ -848,8 +837,7 @@ class ComputableTerm(Term):
 
         if isinstance(fill_value, LoadableTerm):
             raise TypeError(
-                "Can't use expression {} as a fill value. Did you mean to "
-                "append '.latest?'".format(fill_value)
+                f"Can't use expression {fill_value} as a fill value. Did you mean to append '.latest?'"
             )
         elif isinstance(fill_value, ComputableTerm):
             if_false = fill_value
@@ -898,7 +886,7 @@ class ComputableTerm(Term):
         )
 
     def recursive_repr(self):
-        return type(self).__name__ + '(...)'
+        return f'{type(self).__name__}(...)'
 
     @classmethod
     def _with_mixin(cls, mixin_type):
@@ -978,13 +966,7 @@ def _assert_valid_categorical_missing_value(value):
 
 
 def _coerce_to_dtype(value, dtype):
-    if dtype == categorical_dtype:
-        # This check is necessary because we use object dtype for
-        # categoricals, and numpy will allow us to promote numerical
-        # values to object even though we don't support them.
-        _assert_valid_categorical_missing_value(value)
-        return value
-    else:
+    if dtype != categorical_dtype:
         # For any other type, cast using the same rules as numpy's astype
         # function with casting='same_kind'.
         #
@@ -994,3 +976,8 @@ def _coerce_to_dtype(value, dtype):
         # kinds in some cases. In particular, conversion from int to float is
         # allowed.
         return array([value]).astype(dtype=dtype, casting='same_kind')[0]
+    # This check is necessary because we use object dtype for
+    # categoricals, and numpy will allow us to promote numerical
+    # values to object even though we don't support them.
+    _assert_valid_categorical_missing_value(value)
+    return value

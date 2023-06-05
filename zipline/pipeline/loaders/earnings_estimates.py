@@ -79,8 +79,7 @@ def validate_column_specs(events, columns):
     """
     required = required_estimates_fields(columns)
     received = set(events.columns)
-    missing = required - received
-    if missing:
+    if missing := required - received:
         raise ValueError(
             "EarningsEstimatesLoader missing required columns {missing}.\n"
             "Got Columns: {received}\n"
@@ -545,22 +544,16 @@ class EarningsEstimatesLoader(implements(PipelineLoader)):
                     sid,
                     sid_idx,
                 )
-                add_new_adjustments(col_to_overwrites,
-                                    adjs,
-                                    column_name,
-                                    next_qtr_start_idx)
-            # There are no estimates for the quarter. Overwrite all
-            # values going up to the starting index of that quarter
-            # with the missing value for this column.
             else:
                 adjs = [self.overwrite_with_null(
                         col,
                         next_qtr_start_idx,
                         sid_idx)]
-                add_new_adjustments(col_to_overwrites,
-                                    adjs,
-                                    column_name,
-                                    next_qtr_start_idx)
+
+            add_new_adjustments(col_to_overwrites,
+                                adjs,
+                                column_name,
+                                next_qtr_start_idx)
 
     def overwrite_with_null(self,
                             column,
@@ -841,8 +834,7 @@ class PreviousEarningsEstimatesLoader(EarningsEstimatesLoader):
 def validate_split_adjusted_column_specs(name_map, columns):
     to_be_split = set(columns)
     available = set(name_map.keys())
-    extra = to_be_split - available
-    if extra:
+    if extra := to_be_split - available:
         raise ValueError(
             "EarningsEstimatesLoader got the following extra columns to be "
             "split-adjusted: {extra}.\n"
@@ -1087,17 +1079,18 @@ class SplitAdjustedEstimatesLoader(EarningsEstimatesLoader):
         if len(pre_adjustments[0]):
             adjustment_values, date_indexes = pre_adjustments
             for column_name in requested_split_adjusted_columns:
-                col_to_split_adjustments[column_name] = {}
-                # We need to undo all adjustments that happen before the
-                # split_asof_date here by reversing the split ratio.
-                col_to_split_adjustments[column_name][0] = [Float64Multiply(
-                    0,
-                    split_adjusted_asof_date_idx,
-                    sid_idx,
-                    sid_idx,
-                    1 / future_adjustment
-                ) for future_adjustment in adjustment_values]
-
+                col_to_split_adjustments[column_name] = {
+                    0: [
+                        Float64Multiply(
+                            0,
+                            split_adjusted_asof_date_idx,
+                            sid_idx,
+                            sid_idx,
+                            1 / future_adjustment,
+                        )
+                        for future_adjustment in adjustment_values
+                    ]
+                }
                 for adjustment, date_index in zip(adjustment_values,
                                                   date_indexes):
                     adj = Float64Multiply(

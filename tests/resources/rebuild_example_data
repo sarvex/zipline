@@ -115,7 +115,7 @@ def main(ctx, rebuild_input):
             raise NotImplementedError('we cannot rebuild the test buindle')
 
         new_perf_path = d.getpath(
-            'example_data/new_perf/%s' % pd.__version__.replace('.', '-'),
+            f"example_data/new_perf/{pd.__version__.replace('.', '-')}"
         )
         c = dataframe_cache(
             new_perf_path,
@@ -137,8 +137,7 @@ def main(ctx, rebuild_input):
                 _exit()
 
             expected_perf_path = d.getpath(
-                'example_data/expected_perf/%s' %
-                pd.__version__.replace('.', '-'),
+                f"example_data/expected_perf/{pd.__version__.replace('.', '-')}"
             )
 
             # allow users to run some analysis to make sure that the new

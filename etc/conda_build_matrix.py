@@ -16,14 +16,18 @@ zipline_path = os.path.join(
 
 def mkargs(py_version, npy_version, output=False):
     return {
-        'args': [
-            'conda',
-            'build',
-            zipline_path,
-            '-c', 'quantopian',
-            '--python=%s' % py_version,
-            '--numpy=%s' % npy_version,
-        ] + (['--output'] if output else []),
+        'args': (
+            [
+                'conda',
+                'build',
+                zipline_path,
+                '-c',
+                'quantopian',
+                f'--python={py_version}',
+                f'--numpy={npy_version}',
+            ]
+            + (['--output'] if output else [])
+        ),
         'stdout': subprocess.PIPE,
         'stderr': subprocess.PIPE,
     }

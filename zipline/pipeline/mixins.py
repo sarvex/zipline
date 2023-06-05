@@ -121,8 +121,7 @@ class CustomTermMixin(Term):
                 ndim=NotSpecified,
                 **kwargs):
 
-        unexpected_keys = set(kwargs) - set(cls.params)
-        if unexpected_keys:
+        if unexpected_keys := set(kwargs) - set(cls.params):
             raise TypeError(
                 "{termname} received unexpected keyword "
                 "arguments {unexpected}".format(
@@ -495,8 +494,9 @@ class DownsampledMixin(StandardOutputs, UniversalMixin):
         On non-sample dates, forward-fill from previously-computed samples.
         """
         to_sample = dates[select_sampling_indices(dates, self._frequency)]
-        assert to_sample[0] == dates[0], \
-            "Misaligned sampling dates in %s." % type(self).__name__
+        assert (
+            to_sample[0] == dates[0]
+        ), f"Misaligned sampling dates in {type(self).__name__}."
 
         real_compute = self._wrapped_term._compute
 
@@ -562,7 +562,7 @@ class DownsampledMixin(StandardOutputs, UniversalMixin):
         except StopIteration:
             pass
         else:
-            raise AssertionError("Unconsumed sample date: %s" % next_sample)
+            raise AssertionError(f"Unconsumed sample date: {next_sample}")
 
         # Concatenate stored results.
         return vstack(results)

@@ -65,9 +65,7 @@ class BlazeEventsLoader(implements(PipelineLoader)):
 
         dshape = expr.dshape
         if not istabular(dshape):
-            raise ValueError(
-                'expression dshape must be tabular, got: %s' % dshape,
-            )
+            raise ValueError(f'expression dshape must be tabular, got: {dshape}')
 
         required_cols = list(
             required_event_fields(next_value_columns, previous_value_columns)

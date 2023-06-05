@@ -36,7 +36,7 @@ def alter_columns(op, name, *columns, **kwargs):
     if selection_string is None:
         selection_string = ', '.join(column.name for column in columns)
 
-    tmp_name = '_alter_columns_' + name
+    tmp_name = f'_alter_columns_{name}'
     op.rename_table(name, tmp_name)
 
     for column in columns:
@@ -46,18 +46,12 @@ def alter_columns(op, name, *columns, **kwargs):
         # will just get recreated.
         for table in name, tmp_name:
             try:
-                op.drop_index('ix_%s_%s' % (table, column.name))
+                op.drop_index(f'ix_{table}_{column.name}')
             except sa.exc.OperationalError:
                 pass
 
     op.create_table(name, *columns)
-    op.execute(
-        'insert into %s select %s from %s' % (
-            name,
-            selection_string,
-            tmp_name,
-        ),
-    )
+    op.execute(f'insert into {name} select {selection_string} from {tmp_name}')
     op.drop_table(tmp_name)
 
 
@@ -121,7 +115,7 @@ def _pragma_foreign_keys(connection, on):
         If true, PRAGMA foreign_keys will be set to ON. Otherwise, the PRAGMA
         foreign_keys will be set to OFF.
     """
-    connection.execute("PRAGMA foreign_keys=%s" % ("ON" if on else "OFF"))
+    connection.execute(f'PRAGMA foreign_keys={"ON" if on else "OFF"}')
 
 
 # This dict contains references to downgrade methods that can be applied to an

@@ -85,10 +85,7 @@ class TestStatelessRulesNYSE(StatelessRulesTests, TestCase):
             '2014-01-22': False,
         }
 
-        results = {
-            x: rule.should_trigger(self.cal.next_open(T(x)))
-            for x in expected.keys()
-        }
+        results = {x: rule.should_trigger(self.cal.next_open(T(x))) for x in expected}
 
         self.assertEquals(expected, results)
 
@@ -111,10 +108,7 @@ class TestStatelessRulesNYSE(StatelessRulesTests, TestCase):
             '2014-01-23': False,
         }
 
-        results = {
-            x: rule.should_trigger(self.cal.next_open(T(x)))
-            for x in expected.keys()
-        }
+        results = {x: rule.should_trigger(self.cal.next_open(T(x))) for x in expected}
 
         self.assertEquals(expected, results)
 
@@ -136,10 +130,7 @@ class TestStatelessRulesNYSE(StatelessRulesTests, TestCase):
             '2014-01-23': False,
         }
 
-        results = {
-            x: rule.should_trigger(self.cal.next_open(T(x)))
-            for x in expected.keys()
-        }
+        results = {x: rule.should_trigger(self.cal.next_open(T(x))) for x in expected}
 
         self.assertEquals(expected, results)
 

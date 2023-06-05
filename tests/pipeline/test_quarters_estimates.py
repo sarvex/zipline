@@ -175,7 +175,7 @@ class WithEstimates(WithTradingSessions, WithAdjustmentReader):
         cls.events = cls.make_events()
         cls.ASSET_FINDER_EQUITY_SIDS = cls.get_sids()
         cls.ASSET_FINDER_EQUITY_SYMBOLS = [
-            's' + str(n) for n in cls.ASSET_FINDER_EQUITY_SIDS
+            f's{str(n)}' for n in cls.ASSET_FINDER_EQUITY_SIDS
         ]
         # We need to instantiate certain constants needed by supers of
         # `WithEstimates` before we call their `init_class_fixtures`.
@@ -2059,15 +2059,18 @@ class WithSplitAdjustedMultipleEstimateColumns(WithEstimates):
     def test_adjustments_with_multiple_adjusted_columns(self):
         dataset = MultipleColumnsQuartersEstimates(1)
         timelines = self.timelines_1q_out
-        window_len = 3
+
 
         class SomeFactor(CustomFactor):
             inputs = [dataset.estimate1, dataset.estimate2]
+            window_len = 3
+
             window_length = window_len
 
             def compute(self, today, assets, out, estimate1, estimate2):
                 assert_almost_equal(estimate1, timelines[today]['estimate1'])
                 assert_almost_equal(estimate2, timelines[today]['estimate2'])
+
 
         engine = self.make_engine()
         engine.run_pipeline(
@@ -2563,14 +2566,12 @@ class PreviousWithAdjustmentBoundaries(WithAdjustmentBoundaries,
         split_adjusted_before_start_boundary = split_adjusted_at_start_boundary
         split_adjusted_after_end_boundary = split_adjusted_at_end_boundary
 
-        return {cls.test_start_date:
-                split_adjusted_at_start_boundary,
-                cls.split_adjusted_before_start:
-                split_adjusted_before_start_boundary,
-                cls.test_end_date:
-                split_adjusted_at_end_boundary,
-                cls.split_adjusted_after_end:
-                split_adjusted_after_end_boundary}
+        return {
+            cls.test_start_date: split_adjusted_before_start_boundary,
+            cls.split_adjusted_before_start: split_adjusted_before_start_boundary,
+            cls.test_end_date: split_adjusted_after_end_boundary,
+            cls.split_adjusted_after_end: split_adjusted_after_end_boundary,
+        }
 
 
 class BlazePreviousWithAdjustmentBoundaries(PreviousWithAdjustmentBoundaries):
@@ -2672,14 +2673,12 @@ class NextWithAdjustmentBoundaries(WithAdjustmentBoundaries,
         split_adjusted_before_start_boundary = split_adjusted_at_start_boundary
         split_adjusted_after_end_boundary = split_adjusted_at_end_boundary
 
-        return {cls.test_start_date:
-                split_adjusted_at_start_boundary,
-                cls.split_adjusted_before_start:
-                split_adjusted_before_start_boundary,
-                cls.test_end_date:
-                split_adjusted_at_end_boundary,
-                cls.split_adjusted_after_end:
-                split_adjusted_after_end_boundary}
+        return {
+            cls.test_start_date: split_adjusted_before_start_boundary,
+            cls.split_adjusted_before_start: split_adjusted_before_start_boundary,
+            cls.test_end_date: split_adjusted_after_end_boundary,
+            cls.split_adjusted_after_end: split_adjusted_after_end_boundary,
+        }
 
 
 class BlazeNextWithAdjustmentBoundaries(NextWithAdjustmentBoundaries):

@@ -349,10 +349,7 @@ class BundleCoreTestCase(WithInstanceTmpDir,
         with assert_raises(ValueError) as e:
             self.load('bundle', timestamp=ts, environ=self.environ)
 
-        assert_in(
-            "no data for bundle 'bundle' on or before %s" % ts,
-            str(e.exception),
-        )
+        assert_in(f"no data for bundle 'bundle' on or before {ts}", str(e.exception))
 
     def _list_bundle(self):
         return {

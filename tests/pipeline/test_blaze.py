@@ -294,10 +294,7 @@ class BlazeToPipelineTestCase(WithAssetFinder, ZiplineTestCase):
                 missing_values=self.missing_values,
                 **{metadata: metadata_expr}
             )
-        assert_equal(
-            str(e.exception),
-            'no resources provided to compute %s' % metadata,
-        )
+        assert_equal(str(e.exception), f'no resources provided to compute {metadata}')
 
     def test_from_blaze_mixed_resources_dataset_expr(self):
         expr = bz.data(self.df, name='expr', dshape=self.dshape)
@@ -333,8 +330,7 @@ class BlazeToPipelineTestCase(WithAssetFinder, ZiplineTestCase):
             )
         assert_equal(
             str(e.exception),
-            'explicit and implicit resources provided to compute %s' %
-            metadata,
+            f'explicit and implicit resources provided to compute {metadata}',
         )
 
     @parameter_space(deltas={True, False}, checkpoints={True, False})

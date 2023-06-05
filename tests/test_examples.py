@@ -54,8 +54,7 @@ class ExamplesTests(WithTmpDir, ZiplineTestCase):
 
         cls.expected_perf = dataframe_cache(
             cls.tmpdir.getpath(
-                'example_data/expected_perf/%s' %
-                pd.__version__.replace('.', '-'),
+                f"example_data/expected_perf/{pd.__version__.replace('.', '-')}"
             ),
             serialization='pickle',
         )

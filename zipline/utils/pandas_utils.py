@@ -268,7 +268,7 @@ def categorical_df_concat(df_list, inplace=False):
 
     # Assert each dataframe has the same columns/dtypes
     df = df_list[0]
-    if not all([(df.dtypes.equals(df_i.dtypes)) for df_i in df_list[1:]]):
+    if not all((df.dtypes.equals(df_i.dtypes)) for df_i in df_list[1:]):
         raise ValueError("Input DataFrames must have the same columns/dtypes.")
 
     categorical_columns = df.columns[df.dtypes == 'category']
@@ -294,14 +294,13 @@ def _union_all(iterables):
 def _sort_set_none_first(set_):
     """Sort a set, sorting ``None`` before other elements, if present.
     """
-    if None in set_:
-        set_.remove(None)
-        out = [None]
-        out.extend(sorted(set_))
-        set_.add(None)
-        return out
-    else:
+    if None not in set_:
         return sorted(set_)
+    set_.remove(None)
+    out = [None]
+    out.extend(sorted(set_))
+    set_.add(None)
+    return out
 
 
 def empty_dataframe(*columns):
@@ -359,8 +358,5 @@ def check_indexes_all_same(indexes, message="Indexes are not equal."):
         if not same.all():
             bad_loc = np.flatnonzero(~same)[0]
             raise ValueError(
-                "{}\nFirst difference is at index {}: "
-                "{} != {}".format(
-                    message, bad_loc, first[bad_loc], other[bad_loc]
-                ),
+                f"{message}\nFirst difference is at index {bad_loc}: {first[bad_loc]} != {other[bad_loc]}"
             )

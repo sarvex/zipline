@@ -31,8 +31,5 @@ def load_prices_from_csv_folder(folderpath, identifier_col, tz='UTC'):
             continue
         raw = load_prices_from_csv(os.path.join(folderpath, file),
                                    identifier_col, tz)
-        if data is None:
-            data = raw
-        else:
-            data = pd.concat([data, raw], axis=1)
+        data = raw if data is None else pd.concat([data, raw], axis=1)
     return data

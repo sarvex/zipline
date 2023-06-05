@@ -14,7 +14,7 @@ def load_example_modules():
         if not f.endswith('.py') or f == '__init__.py':
             continue
         modname = f[:-len('.py')]
-        mod = import_module('.' + modname, package=__name__)
+        mod = import_module(f'.{modname}', package=__name__)
         example_modules[modname] = mod
         globals()[modname] = mod
 

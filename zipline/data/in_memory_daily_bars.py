@@ -83,11 +83,7 @@ class InMemoryDailyBarReader(CurrencyAwareSessionBarReader):
 
         date_indexer = self._sessions.slice_indexer(start_dt, end_dt)
 
-        out = []
-        for c in columns:
-            out.append(self._values[c][date_indexer, asset_indexer])
-
-        return out
+        return [self._values[c][date_indexer, asset_indexer] for c in columns]
 
     def get_value(self, sid, dt, field):
         """
@@ -166,5 +162,5 @@ def verify_frames_aligned(frames, calendar):
 
     check_indexes_all_same(
         [indexes[0], cal_sessions],
-        "DataFrame index doesn't match {} calendar:".format(calendar.name),
+        f"DataFrame index doesn't match {calendar.name} calendar:",
     )

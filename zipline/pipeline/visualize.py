@@ -43,13 +43,13 @@ bracket = partial(delimit, '[]')
 
 def begin_graph(f, name, **attrs):
     writeln(f, "strict digraph %s {" % name)
-    writeln(f, "graph {}".format(format_attrs(attrs)))
+    writeln(f, f"graph {format_attrs(attrs)}")
 
 
 def begin_cluster(f, name, **attrs):
     attrs.setdefault("label", quote(name))
     writeln(f, "subgraph cluster_%s {" % name)
-    writeln(f, "graph {}".format(format_attrs(attrs)))
+    writeln(f, f"graph {format_attrs(attrs)}")
 
 
 def end_graph(f):
@@ -72,7 +72,7 @@ def cluster(f, name, **attrs):
 
 def roots(g):
     "Get nodes from graph G with indegree 0"
-    return set(n for n, d in iteritems(g.in_degree()) if d == 0)
+    return {n for n, d in iteritems(g.in_degree()) if d == 0}
 
 
 def filter_nodes(include_asset_exists, nodes):
@@ -143,7 +143,7 @@ def _render(g, out, format_, include_asset_exists=False):
     proc_stdout, proc_stderr = proc.communicate(f.read())
     if proc_stderr:
         raise RuntimeError(
-            "Error(s) while rendering graph: %s" % proc_stderr.decode('utf-8')
+            f"Error(s) while rendering graph: {proc_stderr.decode('utf-8')}"
         )
 
     out.write(proc_stdout)
@@ -173,11 +173,8 @@ def writeln(f, s):
 
 
 def fmt(obj):
-    if isinstance(obj, Term):
-        r = obj.graph_repr()
-    else:
-        r = obj
-    return '"%s"' % r
+    r = obj.graph_repr() if isinstance(obj, Term) else obj
+    return f'"{r}"'
 
 
 def add_term_node(f, term):

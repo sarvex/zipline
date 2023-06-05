@@ -101,17 +101,7 @@ class RollFinder(with_metaclass(ABCMeta, object)):
         sessions = tc.sessions_in_range(tc.minute_to_session_label(start),
                                         tc.minute_to_session_label(end))
         freq = sessions.freq
-        if first == front:
-            # This is a bit tricky to grasp. Once we have the active contract
-            # on the given end date, we want to start walking backwards towards
-            # the start date and checking for rolls. For this, we treat the
-            # previous month's contract as the 'first' contract, and the
-            # contract we just found to be active as the 'back'. As we walk
-            # towards the start date, if the 'back' is no longer active, we add
-            # that date as a roll.
-            curr = first_contract << 1
-        else:
-            curr = first_contract << 2
+        curr = first_contract << 1 if first == front else first_contract << 2
         session = sessions[-1]
 
         while session > start and curr is not None:

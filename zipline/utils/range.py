@@ -108,18 +108,10 @@ if PY2:
                 high = self.start
                 step = -step
 
-            if low >= high:
-                return 0
-
-            return (high - low - 1) // step + 1
+            return 0 if low >= high else (high - low - 1) // step + 1
 
         def __repr__(self):
-            return '%s(%s, %s%s)' % (
-                type(self).__name__,
-                self.start,
-                self.stop,
-                (', ' + str(self.step)) if self.step != 1 else '',
-            )
+            return f"{type(self).__name__}({self.start}, {self.stop}{f', {str(self.step)}' if self.step != 1 else ''})"
 
         def __hash__(self):
             return hash((type(self), self.start, self.stop, self.step))
@@ -228,9 +220,9 @@ def _check_steps(a, b):
         Raised when either step is not 1.
     """
     if a.step != 1:
-        raise ValueError('a.step must be equal to 1, got: %s' % a.step)
+        raise ValueError(f'a.step must be equal to 1, got: {a.step}')
     if b.step != 1:
-        raise ValueError('b.step must be equal to 1, got: %s' % b.step)
+        raise ValueError(f'b.step must be equal to 1, got: {b.step}')
 
 
 def overlap(a, b):
@@ -282,12 +274,9 @@ def _combine(n, rs):
     if overlap(n, r):
         yield merge(n, r)
         next(rs)
-        for r in rs:
-            yield r
     else:
         yield n
-        for r in rs:
-            yield r
+    yield from rs
 
 
 def group_ranges(ranges):
@@ -315,8 +304,7 @@ def sorted_diff(rs, ss):
     try:
         s, ss = peek(ss)
     except StopIteration:
-        for r in rs:
-            yield r
+        yield from rs
         return
 
     rtup = (r.start, r.stop)
@@ -329,8 +317,7 @@ def sorted_diff(rs, ss):
     else:
         next(ss)
 
-    for t in sorted_diff(rs, ss):
-        yield t
+    yield from sorted_diff(rs, ss)
 
 
 def intersecting_ranges(ranges):

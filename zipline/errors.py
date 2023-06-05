@@ -701,7 +701,7 @@ class UnsupportedDataType(ZiplineError):
     """
     def __init__(self, hint='', **kwargs):
         if hint:
-            hint = ' ' + hint
+            hint = f' {hint}'
         kwargs['hint'] = hint
         super(UnsupportedDataType, self).__init__(**kwargs)
 

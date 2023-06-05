@@ -1,6 +1,7 @@
 """
 Utilities for working with numpy arrays.
 """
+
 from collections import OrderedDict
 from datetime import datetime
 from distutils.version import StrictVersion
@@ -60,7 +61,7 @@ except AttributeError:
     assert_array_compare = np.testing.assert_array_compare
 
 NaTmap = {
-    dtype('datetime64[%s]' % unit): datetime64('NaT', unit)
+    dtype(f'datetime64[{unit}]'): datetime64('NaT', unit)
     for unit in ('ns', 'us', 'ms', 's', 'm', 'D')
 }
 
@@ -159,9 +160,7 @@ def coerce_to_dtype(dtype, value):
         elif name == 'datetime64[ns]':
             return make_datetime64ns(value)
         else:
-            raise TypeError(
-                "Don't know how to coerce values of dtype %s" % dtype
-            )
+            raise TypeError(f"Don't know how to coerce values of dtype {dtype}")
     return dtype.type(value)
 
 
@@ -172,9 +171,7 @@ def default_missing_value_for_dtype(dtype):
     try:
         return _FILLVALUE_DEFAULTS[dtype]
     except KeyError:
-        raise NoDefaultMissingValue(
-            "No default value registered for dtype %s." % dtype
-        )
+        raise NoDefaultMissingValue(f"No default value registered for dtype {dtype}.")
 
 
 def repeat_first_axis(array, count):
@@ -516,10 +513,7 @@ def changed_locations(a, include_first):
         raise ValueError("indices_of_changed_values only supports 1D arrays.")
     indices = flatnonzero(diff(a)) + 1
 
-    if not include_first:
-        return indices
-
-    return hstack([[0], indices])
+    return indices if not include_first else hstack([[0], indices])
 
 
 def compare_datetime_arrays(x, y):
@@ -533,7 +527,4 @@ def compare_datetime_arrays(x, y):
 def bytes_array_to_native_str_object_array(a):
     """Convert an array of dtype S to an object array containing `str`.
     """
-    if six.PY2:
-        return a.astype(object)
-    else:
-        return a.astype(str).astype(object)
+    return a.astype(object) if six.PY2 else a.astype(str).astype(object)

@@ -16,7 +16,7 @@ class CheckWindowsMixin(object):
 
             col_ix = np.searchsorted(assets, asset)
             if assets[col_ix] != asset:
-                raise AssertionError('asset %s is not in the window' % asset)
+                raise AssertionError(f'asset {asset} is not in the window')
 
             try:
                 expected = expected_by_day[today]
@@ -52,11 +52,7 @@ class CheckWindowsClassifier(CheckWindowsMixin, CustomClassifier):
     not in ``expected_windows`` are not checked.
     """
     def __new__(cls, input_, window_length, expected_windows):
-        if input_.dtype.kind == 'V':
-            dtype = np.dtype('O')
-        else:
-            dtype = input_.dtype
-
+        dtype = np.dtype('O') if input_.dtype.kind == 'V' else input_.dtype
         return super(CheckWindowsClassifier, cls).__new__(
             cls,
             inputs=[input_],

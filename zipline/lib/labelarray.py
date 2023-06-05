@@ -45,11 +45,10 @@ def compare_arrays(left, right):
 
 def _make_unsupported_method(name):
     def method(*args, **kwargs):
-        raise NotImplementedError(
-            "Method %s is not supported on LabelArrays." % name
-        )
+        raise NotImplementedError(f"Method {name} is not supported on LabelArrays.")
+
     method.__name__ = name
-    method.__doc__ = "Unsupported LabelArray Method: %s" % name
+    method.__doc__ = f"Unsupported LabelArray Method: {name}"
     return method
 
 
@@ -60,8 +59,7 @@ class MissingValueMismatch(ValueError):
     """
     def __init__(self, left, right):
         super(MissingValueMismatch, self).__init__(
-            "LabelArray missing_values don't match:"
-            " left={}, right={}".format(left, right)
+            f"LabelArray missing_values don't match: left={left}, right={right}"
         )
 
 
@@ -166,11 +164,7 @@ class LabelArray(ndarray):
         if not is_object(values):
             values = values.astype(object)
 
-        if values.flags.f_contiguous:
-            ravel_order = 'F'
-        else:
-            ravel_order = 'C'
-
+        ravel_order = 'F' if values.flags.f_contiguous else 'C'
         if categories is None:
             codes, categories, reverse_categories = factorize_strings(
                 values.ravel(ravel_order),
@@ -526,15 +520,8 @@ class LabelArray(ndarray):
                subok=True,
                copy=True):
         if dtype == self.dtype:
-            if not subok:
-                array = self.view(type=np.ndarray)
-            else:
-                array = self
-
-            if copy:
-                return array.copy()
-            return array
-
+            array = self.view(type=np.ndarray) if not subok else self
+            return array.copy() if copy else array
         if dtype == object_dtype:
             return self.as_string_array()
 
@@ -663,8 +650,8 @@ class LabelArray(ndarray):
             allowed_outtypes = self.SUPPORTED_NON_NONE_SCALAR_TYPES
 
         def f_to_use(x,
-                     missing_value=self.missing_value,
-                     otypes=allowed_outtypes):
+                         missing_value=self.missing_value,
+                         otypes=allowed_outtypes):
 
             # Don't call f on the missing value; those locations don't exist
             # semantically. We return _sortable_sentinel rather than None
@@ -687,10 +674,7 @@ class LabelArray(ndarray):
                     )
                 )
 
-            if ret == missing_value:
-                return _sortable_sentinel
-
-            return ret
+            return _sortable_sentinel if ret == missing_value else ret
 
         new_categories_with_duplicates = (
             np.vectorize(f_to_use, otypes=[object])(self.categories)

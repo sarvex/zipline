@@ -110,14 +110,14 @@ class EquityPricingLoader(implements(PipelineLoader)):
             sids,
         )
 
-        out = {}
-        for c, c_raw, c_adjs in zip(ohlcv_cols, raw_ohlcv_arrays, adjustments):
-            out[c] = AdjustedArray(
+        out = {
+            c: AdjustedArray(
                 c_raw.astype(c.dtype),
                 c_adjs,
                 c.missing_value,
             )
-
+            for c, c_raw, c_adjs in zip(ohlcv_cols, raw_ohlcv_arrays, adjustments)
+        }
         for c in currency_cols:
             codes_1d = self.raw_price_reader.currency_codes(sids)
             codes = repeat_first_axis(codes_1d, len(dates))
