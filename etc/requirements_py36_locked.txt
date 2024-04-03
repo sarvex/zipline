@@ -63,7 +63,7 @@ pandas==0.22.0            # via -r etc/requirements.in, dask, empyrical, odo, pa
 partd==1.1.0              # via dask
 pathtools==0.1.2          # via sphinx-autobuild, watchdog
 patsy==0.5.1              # via -r etc/requirements.in, statsmodels
-pillow==7.2.0             # via matplotlib
+pillow==10.3.0             # via matplotlib
 pip-tools==5.3.1          # via -r etc/requirements_dev.in
 port_for==0.3.1           # via sphinx-autobuild
 psutil==5.7.2             # via blaze
